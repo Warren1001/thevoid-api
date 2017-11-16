@@ -1,13 +1,10 @@
 package com.kabryxis.thevoid.api.game;
 
-import java.util.logging.Logger;
-
 import com.kabryxis.kabutils.concurrent.thread.PausableThread;
 
 public class GameThread extends PausableThread {
 	
 	private final String name;
-	private final Logger logger;
 	
 	private Game game;
 	private boolean hasStarted = false;
@@ -15,7 +12,6 @@ public class GameThread extends PausableThread {
 	public GameThread(String name) {
 		super(name + " - Game thread");
 		this.name = name;
-		this.logger = Logger.getLogger(name);
 	}
 	
 	public String getGameThreadName() {
@@ -35,35 +31,16 @@ public class GameThread extends PausableThread {
 	}
 	
 	@Override
-	public void start() {
-		if(game == null) {
-			logger.severe("The GameThread '" + name + "' tried to start without a Game object.");
-			return;
-		}
-		super.start();
-	}
-	
-	@Override
-	protected void begin() {
+	public void run() {
 		hasStarted = true;
 		game.threadStart();
-	}
-	
-	@Override
-	protected boolean canTick() {
-		return game.canRun();
-	}
-	
-	@Override
-	protected void tick() {
-		game.next();
-		game.start();
-		game.timer();
-		game.end();
-	}
-	
-	@Override
-	protected void end() {
+		while(game.canRun()) {
+			if(!pause0()) break;
+			game.next();
+			game.start();
+			game.timer();
+			game.end();
+		}
 		game.threadEnd();
 	}
 	

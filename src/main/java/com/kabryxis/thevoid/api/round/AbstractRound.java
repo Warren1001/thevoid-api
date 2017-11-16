@@ -15,7 +15,7 @@ public abstract class AbstractRound implements Round {
 	public final static List<String> DEFAULT_worldNames = Collections.unmodifiableList(Arrays.asList("world"));
 	public final static List<String> DEFAULT_schematics = Collections.unmodifiableList(Arrays.asList("rainbow", "halfsphere"));
 	
-	private final static String directory = "plugins" + File.separator + "TheVoid" + File.separator + "round" + File.separator;
+	private final static String directory = "plugins" + File.separator + "TheVoid" + File.separator + "rounds" + File.separator;
 	
 	protected final String name;
 	protected final Config config;

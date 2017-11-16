@@ -1,8 +1,6 @@
 package com.kabryxis.thevoid.api.game;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -11,7 +9,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Sound;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -25,7 +22,7 @@ import com.kabryxis.kabutils.spigot.version.wrapper.WrapperCache;
 import com.kabryxis.kabutils.spigot.version.wrapper.entity.player.WrappedEntityPlayer;
 import com.kabryxis.kabutils.spigot.version.wrapper.packet.WrappedPacket;
 import com.kabryxis.kabutils.spigot.version.wrapper.packet.out.chat.WrappedPacketPlayOutChat;
-import com.kabryxis.thevoid.api.schematic.Clipboard;
+import com.kabryxis.thevoid.api.schematic.BlockSelection;
 
 public class Gamer {
 	
@@ -54,8 +51,7 @@ public class Gamer {
 	private Game game;
 	
 	private boolean inBuilderMode = false;
-	private Clipboard selection = null;
-	private List<Block> selected = null;
+	private BlockSelection selection = null;
 	
 	public Gamer(UUID uuid) {
 		this.uuid = uuid;
@@ -110,30 +106,17 @@ public class Gamer {
 	}
 	
 	public void setLeftSelection(Location loc) {
-		if(selection == null) selection = new Clipboard(player);
-		selection.setLeft(new Vector(loc.getX(), loc.getY(), loc.getZ()));
+		if(selection == null) selection = new BlockSelection(player);
+		selection.setLeft(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
 	}
 	
 	public void setRightSelection(Location loc) {
-		if(selection == null) selection = new Clipboard(player);
-		selection.setRight(new Vector(loc.getX(), loc.getY(), loc.getZ()));
+		if(selection == null) selection = new BlockSelection(player);
+		selection.setRight(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
 	}
 	
-	public Clipboard getClipboard() {
+	public BlockSelection getSelection() {
 		return selection;
-	}
-	
-	public void addSelectedBlock(Block block) {
-		if(selected == null) selected = new ArrayList<>();
-		if(!selected.contains(block)) selected.add(block);
-	}
-	
-	public void removeSelectedBlock(Block block) {
-		if(selected != null && selected.contains(block)) selected.remove(block);
-	}
-	
-	public List<Block> getSelectedBlocks() {
-		return selected;
 	}
 	
 	public void reset() {

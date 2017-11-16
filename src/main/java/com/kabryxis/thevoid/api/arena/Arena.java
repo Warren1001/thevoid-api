@@ -1,5 +1,6 @@
 package com.kabryxis.thevoid.api.arena;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,35 +22,48 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.util.Vector;
 
 import com.kabryxis.kabutils.data.Arrays;
+import com.kabryxis.kabutils.data.Lists;
+import com.kabryxis.kabutils.spigot.data.Config;
 import com.kabryxis.kabutils.spigot.version.wrapper.world.world.WrappedWorld;
 import com.kabryxis.kabutils.spigot.world.WorldManager;
 import com.kabryxis.thevoid.api.schematic.Schematic;
 
 public class Arena {
 	
+	public final static String PATH = "plugins" + File.separator + "TheVoid" + File.separator + "arenas" + File.separator;
+	
 	private final Queue<SchematicData> schematics = new ConcurrentLinkedQueue<>();
 	private final Random random = new Random();
 	
 	private final String name;
+	private final ArenaOrientation orientation;
+	private final Location start;
 	private final WrappedWorld<?> world;
-	private final Location center;
 	
 	private SchematicData currentSchematicData;
 	
 	private Set<Entity> spawnedEntities = new HashSet<>();
 	
-	public Arena(String name, String worldName, int centerX, int centerY, int centerZ) {
-		this(name, new Location(Bukkit.getWorld(worldName), centerX, centerY, centerZ));
+	public Arena(Config config) {
+		this.name = config.getName();
+		this.orientation = ArenaOrientation.valueOf(config.getString("orientation"));
+		this.start = new Location(Bukkit.getWorld(config.getString("world")), config.getDouble("x"), config.getDouble("y"), config.getDouble("z"));
+		this.world = WorldManager.getWorld(start.getWorld());
 	}
 	
-	public Arena(String name, Location center) {
+	public Arena(String name, ArenaOrientation orientation, Location start) {
 		this.name = name;
-		this.world = WorldManager.getWorld(center.getWorld());
-		this.center = center;
+		this.orientation = orientation;
+		this.start = start;
+		this.world = WorldManager.getWorld(start.getWorld());
 	}
 	
 	public String getName() {
 		return name;
+	}
+	
+	public ArenaOrientation getOrientation() {
+		return orientation;
 	}
 	
 	public WrappedWorld<?> getWorld() {
@@ -68,16 +82,20 @@ public class Arena {
 				continue;
 			}
 			Map<Long, List<int[]>> schematicChunkData = new HashMap<>();
-			int[][] data = schematic.getSchematicData();
-			String walkableString = schematic.getData().getString("walkable");
+			int[][] schematicData = schematic.getSchematicData();
+			Config data = schematic.getData();
+			Location center = start.clone();
+			if(orientation == ArenaOrientation.BOTTOM) center = center.add(data.getInt("center.x"), data.getInt("center.y"), data.getInt("center.z"));
+			String walkableString = data.getString("walkable");
 			int[] walkableYs = null;
 			List<Location> walkableLocs = null;
 			if(walkableString != null) {
 				if(walkableString.contains(",")) {
 					String[] walkableSplit = walkableString.split(",");
 					if(walkableSplit.length > 0) {
-						walkableYs = new int[walkableSplit.length];
-						walkableLocs = new ArrayList<>();
+						int size = walkableSplit.length;
+						walkableYs = new int[size];
+						walkableLocs = new ArrayList<>(size);
 						for(int i = 0; i < walkableSplit.length; i++) {
 							walkableYs[i] = Integer.parseInt(walkableSplit[i]);
 						}
@@ -88,12 +106,12 @@ public class Arena {
 					walkableLocs = new ArrayList<>();
 				}
 			}
-			for(int[] d : data) {
+			for(int[] d : schematicData) {
 				int y = d[1], trueX = d[0] + center.getBlockX(), trueY = y + center.getBlockY(), trueZ = d[2] + center.getBlockZ();
 				schematicChunkData.computeIfAbsent(world.toLong(trueX >> 4, trueZ >> 4), l -> new ArrayList<>()).add(new int[] { trueX & 0x0f, trueY, trueZ & 0x0f, d[3], d[4] });
 				if(walkableLocs != null && Arrays.containsInt(walkableYs, y)) walkableLocs.add(new Location(world.getWorld(), trueX, trueY, trueZ));
 			}
-			SchematicData sd = new SchematicData(schematic, schematicChunkData, walkableLocs);
+			SchematicData sd = new SchematicData(schematic, center, schematicChunkData, walkableLocs);
 			alreadyCreated.put(schematic, sd);
 			schematics.add(sd);
 		}
@@ -124,7 +142,7 @@ public class Arena {
 	}
 	
 	public void setBlock(int x, int y, int z, int type, byte data) {
-		world.setBlock(center.getBlockX() + x, center.getBlockY() + y, center.getBlockZ() + z, type, data);
+		world.setBlock(start.getBlockX() + x, start.getBlockY() + y, start.getBlockZ() + z, type, data);
 	}
 	
 	public void setBlock(Vector vector, int type, byte data) {
@@ -141,27 +159,31 @@ public class Arena {
 	}
 	
 	public void setBlockFast(int x, int y, int z, int type, byte data) {
-		world.setBlockFast(center.getBlockX() + x, center.getBlockY() + y, center.getBlockZ() + z, type, data);
+		world.setBlockFast(start.getBlockX() + x, start.getBlockY() + y, start.getBlockZ() + z, type, data);
 	}
 	
 	public Block getBlock(int x, int y, int z) {
-		return world.getBlock(center.getBlockX() + x, center.getBlockY() + y, center.getBlockZ() + z);
+		return world.getBlock(start.getBlockX() + x, start.getBlockY() + y, start.getBlockZ() + z);
 	}
 	
 	public int getBlockId(int x, int y, int z) {
-		return world.getBlockId(center.getBlockX() + x, center.getBlockY() + y, center.getBlockZ() + z);
+		return world.getBlockId(start.getBlockX() + x, start.getBlockY() + y, start.getBlockZ() + z);
 	}
 	
 	public void setMetadata(int x, int y, int z, String key, MetadataValue value) {
-		world.setMetadata(center.getBlockX() + x, center.getBlockY() + y, center.getBlockZ() + z, key, value);
+		world.setMetadata(start.getBlockX() + x, start.getBlockY() + y, start.getBlockZ() + z, key, value);
 	}
 	
 	public void removeMetadata(int x, int y, int z, String key, Plugin plugin) {
-		world.removeMetadata(center.getBlockX() + x, center.getBlockY() + y, center.getBlockZ() + z, key, plugin);
+		world.removeMetadata(start.getBlockX() + x, start.getBlockY() + y, start.getBlockZ() + z, key, plugin);
 	}
 	
 	public boolean hasMetadata(int x, int y, int z, String key) {
-		return world.hasMetadata(center.getBlockX() + x, center.getBlockY() + y, center.getBlockZ() + z, key);
+		return world.hasMetadata(start.getBlockX() + x, start.getBlockY() + y, start.getBlockZ() + z, key);
+	}
+	
+	public List<Location> getWalkableLocations() {
+		return Lists.cloneCopy(currentSchematicData.getWalkableLocations());
 	}
 	
 	public Location getRandomWalkableLocation() {
@@ -186,15 +208,15 @@ public class Arena {
 	}
 	
 	public Vector getArenaLocation(Location loc) {
-		return new Vector(loc.getX() - center.getBlockX(), loc.getY() - center.getBlockY(), loc.getZ() - center.getBlockZ());
+		return new Vector(loc.getX() - start.getBlockX(), loc.getY() - start.getBlockY(), loc.getZ() - start.getBlockZ());
 	}
 	
 	public Location getWorldLocation(Vector vec) {
-		return new Location(world.getWorld(), center.getBlockX() + vec.getX(), center.getBlockY() + vec.getY(), center.getBlockZ() + vec.getZ());
+		return new Location(world.getWorld(), start.getBlockX() + vec.getX(), start.getBlockY() + vec.getY(), start.getBlockZ() + vec.getZ());
 	}
 	
 	public Location getCenter() {
-		return center;
+		return currentSchematicData.getCenter();
 	}
 	
 	/**

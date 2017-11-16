@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import org.bukkit.block.Block;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.util.Vector;
 
 import com.kabryxis.kabutils.data.Data;
@@ -20,14 +21,15 @@ public class Schematic {
 	public final static String SEPERATOR = ",", LINE_SEPERATOR = ";";
 	
 	@SuppressWarnings("deprecation")
-	public static void create(String name, List<Block> blocks, Vector center, int radius) {
+	public static Schematic create(String name, BlockSelection selection, Vector center, int radius) {
 		StringBuilder builder = new StringBuilder();
-		int size = blocks.size();
+		List<Block> blocks = selection.getBlocks();
+		int size = blocks.size(), lowestX = selection.getLowestX(), lowestY = selection.getLowestY(), lowestZ = selection.getLowestZ();
 		int[][] data = new int[size][5];
 		for(int i = 0; i < size; i++) {
 			int[] d = data[i];
 			Block block = blocks.get(i);
-			int x = block.getX() - center.getBlockX(), y = block.getY() - center.getBlockY(), z = block.getZ() - center.getBlockZ(), id = block.getTypeId(), bd = block.getData();
+			int x = block.getX() - lowestX, y = block.getY() - lowestY, z = block.getZ() - lowestZ, id = block.getTypeId(), bd = block.getData();
 			d[0] = x;
 			builder.append(x);
 			builder.append(SEPERATOR);
@@ -52,37 +54,20 @@ public class Schematic {
 			builder.append(bd);
 			if(i < size - 1) builder.append(LINE_SEPERATOR);
 		}
-		Data.write(Paths.get(PATH + name + ".sch"), builder.toString().getBytes(CHARSET));
+		String filePath = PATH + name + ".sch";
+		Data.write(Paths.get(filePath), builder.toString().getBytes(CHARSET));
 		Config config = Config.get(new File(PATH + name + "-data.yml"));
 		config.set("radius", radius);
+		ConfigurationSection cent = config.createSection("center");
+		cent.set("x", center.getX() - lowestX);
+		cent.set("y", center.getY() - lowestY);
+		cent.set("z", center.getZ() - lowestZ);
 		config.save();
+		return new Schematic(new File(filePath), name, data, config);
 	}
 	
-	public static void create(File file, Consumer<Schematic> future) {
-		Data.read(file.toPath(), new Consumer<byte[]>() {
-			
-			@Override
-			public void accept(byte[] bytes) {
-				String fileData = new String(bytes, CHARSET);
-				String[] lines = fileData.split(LINE_SEPERATOR);
-				int size = lines.length;
-				int[][] data = new int[size][5];
-				for(int i = 0; i < size; i++) {
-					String line = lines[i];
-					String[] split = line.split(SEPERATOR);
-					int[] d = data[i];
-					d[0] = Integer.parseInt(split[0]);
-					d[1] = Integer.parseInt(split[1]);
-					d[2] = Integer.parseInt(split[2]);
-					if(split.length > 3) d[3] = Integer.parseInt(split[3]);
-					if(split.length > 4) d[4] = Integer.parseInt(split[4]);
-				}
-				Schematic schematic = new Schematic(file);
-				schematic.reload();
-				future.accept(schematic);
-			}
-			
-		});
+	public static Schematic create(File file) {
+		return new Schematic(file);
 	}
 	
 	private final File file;
@@ -96,9 +81,21 @@ public class Schematic {
 		this.name = file.getName().split("\\.")[0];
 		this.data = Config.get(new File(PATH + name + "-data.yml"));
 		data.load();
+		reload();
+	}
+	
+	public Schematic(File file, String name, int[][] schematicData, Config data) {
+		this.file = file;
+		this.name = name;
+		this.schematicData = schematicData;
+		this.data = data;
 	}
 	
 	public void reload() {
+		reload(null);
+	}
+	
+	private void reload(Consumer<Schematic> future) {
 		Data.read(file.toPath(), bytes -> {
 			String fileData = new String(bytes, CHARSET);
 			String[] lines = fileData.split(LINE_SEPERATOR);
@@ -114,7 +111,12 @@ public class Schematic {
 				if(split.length > 3) d[3] = Integer.parseInt(split[3]);
 				if(split.length > 4) d[4] = Integer.parseInt(split[4]);
 			}
+			if(future != null) future.accept(this);
 		});
+	}
+	
+	public boolean isLoaded() {
+		return schematicData != null;
 	}
 	
 	public String getName() {
