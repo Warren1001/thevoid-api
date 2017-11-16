@@ -85,7 +85,6 @@ public class Arena {
 			int[][] schematicData = schematic.getSchematicData();
 			Config data = schematic.getData();
 			Location center = start.clone();
-			if(orientation == ArenaOrientation.BOTTOM) center = center.add(data.getInt("center.x"), data.getInt("center.y"), data.getInt("center.z"));
 			String walkableString = data.getString("walkable");
 			int[] walkableYs = null;
 			List<Location> walkableLocs = null;
@@ -111,6 +110,7 @@ public class Arena {
 				schematicChunkData.computeIfAbsent(world.toLong(trueX >> 4, trueZ >> 4), l -> new ArrayList<>()).add(new int[] { trueX & 0x0f, trueY, trueZ & 0x0f, d[3], d[4] });
 				if(walkableLocs != null && Arrays.containsInt(walkableYs, y)) walkableLocs.add(new Location(world.getWorld(), trueX, trueY, trueZ));
 			}
+			if(orientation == ArenaOrientation.BOTTOM) center = center.add(data.getInt("center.x"), data.getInt("center.y"), data.getInt("center.z"));
 			SchematicData sd = new SchematicData(schematic, center, schematicChunkData, walkableLocs);
 			alreadyCreated.put(schematic, sd);
 			schematics.add(sd);
