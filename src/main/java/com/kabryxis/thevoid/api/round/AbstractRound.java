@@ -12,7 +12,7 @@ import com.kabryxis.kabutils.data.file.yaml.Config;
 public abstract class AbstractRound implements Round {
 	
 	public final static int DEFAULT_roundLength = 30;
-	public final static List<String> DEFAULT_worldNames = Collections.unmodifiableList(Arrays.asList("world"));
+	public final static List<String> DEFAULT_worldNames = Collections.unmodifiableList(Collections.singletonList("world"));
 	public final static List<String> DEFAULT_schematics = Collections.unmodifiableList(Arrays.asList("rainbow", "halfsphere"));
 	
 	private final static String directory = "plugins" + File.separator + "TheVoid" + File.separator + "rounds" + File.separator;
@@ -79,6 +79,6 @@ public abstract class AbstractRound implements Round {
 	}
 	
 	@Override
-	public void customTimer() {};
+	public void customTimer() {}
 	
 }

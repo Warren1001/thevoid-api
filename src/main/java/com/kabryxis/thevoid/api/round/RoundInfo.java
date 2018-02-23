@@ -6,12 +6,12 @@ import com.kabryxis.thevoid.api.schematic.Schematic;
 
 public interface RoundInfo {
 	
-	public Round getRound();
+	Round getRound();
 	
-	public Arena getArena();
+	Arena getArena();
 	
-	public Schematic getSchematic();
+	Schematic getSchematic();
 	
-	public void load(Game game);
+	void load(Game game);
 	
 }

@@ -3,12 +3,16 @@ package com.kabryxis.thevoid.api.game;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Sound;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -33,7 +37,7 @@ public class Gamer {
 	}
 	
 	public static Gamer getGamer(UUID uuid) {
-		return gamers.computeIfAbsent(uuid, id -> new Gamer(id));
+		return gamers.computeIfAbsent(uuid, Gamer::new);
 	}
 	
 	private final static ItemStack[] EMPTY_ITEMS = new ItemStack[36], EMPTY_ARMOR = new ItemStack[4];
@@ -148,6 +152,24 @@ public class Gamer {
 		return game.getCurrentRoundInfo().getArena().getArenaLocation(getWorldLocation());
 	}
 	
+	public void forEachBlockStanding(Predicate<Block> predicate, Consumer<Block> action) {
+		Location loc = player.getLocation().subtract(0, 0.1, 0);
+		Block block = loc.getBlock();
+		double offsetX = loc.getX() - loc.getBlockX(), offsetZ = loc.getZ() - loc.getBlockZ();
+		boolean two = false, lessX = offsetX <= 0.3, lessZ = offsetZ <= 0.3;
+		if(predicate.test(block)) action.accept(block);
+		if(lessX || offsetX >= 0.7) { // posx = east, posz = south
+			Block b = block.getRelative(lessX ? BlockFace.WEST : BlockFace.EAST);
+			if(predicate.test(b)) action.accept(b);
+			two = true;
+		}
+		if(lessZ || offsetZ >= 0.7) {
+			block = block.getRelative(lessZ ? BlockFace.NORTH : BlockFace.SOUTH);
+			if(predicate.test(block)) action.accept(block);
+			if(two && predicate.test(block)) action.accept(block.getRelative(lessX ? BlockFace.WEST : BlockFace.EAST));
+		}
+	}
+	
 	public void setScoreboard(Scoreboard board) {
 		player.setScoreboard(board);
 	}
@@ -171,14 +193,7 @@ public class Gamer {
 	
 	public void teleport(Location location) {
 		if(/*!player.getLocation().getWorld().getName().equals(location.getWorld().getName()) && */!BukkitThreads.isMainThread()) {
-			BukkitThreads.sync(new Runnable() {
-				
-				@Override
-				public void run() {
-					teleport0(location);
-				}
-				
-			});
+			BukkitThreads.sync(() -> teleport0(location));
 		}
 		else teleport0(location);
 	}
@@ -205,28 +220,14 @@ public class Gamer {
 	
 	public void startSpectating() {
 		if(!BukkitThreads.isMainThread()) {
-			BukkitThreads.sync(new Runnable() {
-				
-				@Override
-				public void run() {
-					startSpectating0();
-				}
-				
-			});
+			BukkitThreads.sync(this::startSpectating0);
 		}
 		else startSpectating0();
 	}
 	
 	public void startSpectating(Location teleport) {
 		if(!BukkitThreads.isMainThread()) {
-			BukkitThreads.sync(new Runnable() {
-				
-				@Override
-				public void run() {
-					startSpectating0(teleport);
-				}
-				
-			});
+			BukkitThreads.sync(() -> startSpectating0(teleport));
 		}
 		else startSpectating0(teleport);
 	}
@@ -243,28 +244,14 @@ public class Gamer {
 	
 	public void stopSpectating() {
 		if(!BukkitThreads.isMainThread()) {
-			BukkitThreads.sync(new Runnable() {
-				
-				@Override
-				public void run() {
-					stopSpectating0();
-				}
-				
-			});
+			BukkitThreads.sync(this::stopSpectating0);
 		}
 		else stopSpectating0();
 	}
 	
 	public void stopSpectating(Location teleport) {
 		if(!BukkitThreads.isMainThread()) {
-			BukkitThreads.sync(new Runnable() {
-				
-				@Override
-				public void run() {
-					stopSpectating0(teleport);
-				}
-				
-			});
+			BukkitThreads.sync(() -> stopSpectating0(teleport));
 		}
 		else stopSpectating0(teleport);
 	}

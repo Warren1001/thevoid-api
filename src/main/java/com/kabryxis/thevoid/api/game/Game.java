@@ -10,40 +10,40 @@ import com.kabryxis.thevoid.api.round.RoundInfo;
 
 public interface Game {
 	
-	public String getName();
+	String getName();
 	
-	public Plugin getOwner();
+	Plugin getOwner();
 	
-	public Logger getLogger();
+	Logger getLogger();
 	
-	public void threadStart();
+	void threadStart();
 	
-	public boolean canRun();
+	boolean canRun();
 	
-	public void next();
+	void next();
 	
-	public void start();
+	void start();
 	
-	public void timer();
+	void timer();
 	
-	public void end();
+	void end();
 	
-	public void threadEnd();
+	void threadEnd();
 	
-	public void pause();
+	void pause();
 	
-	public void unpause();
+	void unpause();
 	
-	public void forEachGamer(Consumer<? super Gamer> action);
+	void forEachGamer(Consumer<? super Gamer> action);
 	
-	public RoundInfo getCurrentRoundInfo();
+	RoundInfo getCurrentRoundInfo();
 	
-	public void callEvent(Event event);
+	void callEvent(Event event);
 	
-	public boolean isInProgress();
+	boolean isInProgress();
 	
-	public void addGamer(Gamer gamer);
+	void addGamer(Gamer gamer);
 	
-	public void removeGamer(Gamer gamer);
+	void removeGamer(Gamer gamer);
 	
 }

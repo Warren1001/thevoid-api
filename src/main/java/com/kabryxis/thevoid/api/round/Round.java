@@ -6,25 +6,28 @@ import org.bukkit.event.Event;
 
 import com.kabryxis.thevoid.api.arena.Arena;
 import com.kabryxis.thevoid.api.game.Game;
+import com.kabryxis.thevoid.api.game.Gamer;
 
 public interface Round {
 	
-	public void load(Game game, Arena arena);
+	void load(Game game, Arena arena);
 	
-	public void start(Game game, Arena arena);
+	void start(Game game, Arena arena);
 	
-	public void end(Game game, Arena arena);
+	void end(Game game, Arena arena);
 	
-	public void event(Game game, Event event);
+	void event(Game game, Event event);
 	
-	public String getName();
+	void fell(Game game, Gamer gamer);
 	
-	public int getRoundLength();
+	String getName();
 	
-	public List<String> getWorldNames();
+	int getRoundLength();
 	
-	public List<String> getSchematics();
+	List<String> getWorldNames();
 	
-	public void customTimer();
+	List<String> getSchematics();
+	
+	void customTimer();
 	
 }
