@@ -1,19 +1,18 @@
 package com.kabryxis.thevoid.api.schematic;
 
+import com.kabryxis.kabutils.data.Data;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+
 import java.io.File;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
-
-import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.configuration.ConfigurationSection;
-
-import com.kabryxis.kabutils.data.Data;
-import com.kabryxis.kabutils.spigot.data.Config;
 
 public class Schematic {
 	
@@ -23,36 +22,34 @@ public class Schematic {
 	
 	private final File file;
 	private final String name;
-	private final Config data;
 	
 	private List<SchematicEntry> schematicData;
+	private Set<Class<? extends SchematicWork>> schematicWorks;
 	private double sizeX, sizeY, sizeZ;
 	
 	public Schematic(File file) {
 		this.file = file;
 		this.name = file.getName().split("\\.")[0];
-		this.data = Config.get(new File(PATH + name + "-data.yml"));
-		data.load();
 		reload();
 	}
 	
-	public Schematic(File file, String name, List<SchematicEntry> schematicData, Config data) {
+	public Schematic(File file, String name, List<SchematicEntry> schematicData) {
 		this.file = file;
 		this.name = name;
 		this.schematicData = schematicData;
-		this.data = data;
 	}
 	
 	@SuppressWarnings("deprecation")
-	public Schematic(String name, BlockSelection selection, double centerX, double centerY, double centerZ, int radius) {
+	public Schematic(String name, BlockSelection selection, boolean air) {
 		StringBuilder builder = new StringBuilder();
 		List<Block> blocks = selection.getBlocks();
 		int size = blocks.size(), lowestX = selection.getLowestX(), lowestY = selection.getLowestY(), lowestZ = selection.getLowestZ();
 		List<SchematicEntry> schematicData = new ArrayList<>(size);
 		for(int i = 0; i < size; i++) {
 			Block block = blocks.get(i);
-			int x = block.getX() - lowestX, y = block.getY() - lowestY, z = block.getZ() - lowestZ, data = block.getData();
 			Material type = block.getType();
+			if(!air && type == Material.AIR) continue;
+			int x = block.getX() - lowestX, y = block.getY() - lowestY, z = block.getZ() - lowestZ, data = block.getData();
 			builder.append(x);
 			builder.append(SEPERATOR);
 			builder.append(y);
@@ -75,20 +72,14 @@ public class Schematic {
 			if(i < size - 1) builder.append(LINE_SEPERATOR);
 			schematicData.add(new SchematicEntry(x, y, z, type, data));
 		}
-		String filePath = PATH + name;
-		Data.write(Paths.get(filePath + ".sch"), builder.toString().getBytes(CHARSET));
-		Config config = Config.get(new File(filePath + "-data.yml"));
-		config.set("radius", radius);
-		ConfigurationSection cent = config.createSection("center");
-		cent.set("x", centerX - lowestX);
-		cent.set("y", centerY - lowestY);
-		cent.set("z", centerZ - lowestZ);
-		config.save();
+		String filePath = PATH + name + ".sch";
+		Data.write(Paths.get(filePath), builder.toString().getBytes(CHARSET));
 		this.file = new File(filePath);
 		this.name = name;
 		this.schematicData = schematicData;
-		this.data = config;
 	}
+	
+	
 	
 	public void reload() {
 		reload(null);
@@ -119,22 +110,17 @@ public class Schematic {
 		});
 	}
 	
-	/*public void preload(Arena arena) {
-		Map<Long, List<int[]>> chunkData = new HashMap<>();
-		Location center = arena.getLocation();
-		for(int[] d : schematicData) {
-			int trueX = d[0] + center.getBlockX(), trueY = d[1] + center.getBlockY(), trueZ = d[2] + center.getBlockZ();
-			if(arena.getOrientation() == ArenaOrientation.CENTER) {
-				trueX -= sizeX / 2.0;
-				trueY -= sizeY / 2.0;
-				trueZ -= sizeZ / 2.0;
-			}
-			chunkData.computeIfAbsent(arena.getWorld().toLong(trueX >> 4, trueZ >> 4), l -> new ArrayList<>()).add(new int[] { trueX & 0x0f, trueY, trueZ & 0x0f, d[3], d[4] });
-		}
-	}*/
+	public void addSchematicWork(Class<? extends SchematicWork> clazz) {
+		if(schematicWorks == null) schematicWorks = new HashSet<>();
+		schematicWorks.add(clazz);
+	}
 	
-	public boolean isLoaded() {
-		return schematicData != null;
+	public boolean hasSchematicWork() {
+		return schematicWorks != null && !schematicWorks.isEmpty();
+	}
+	
+	public Set<Class<? extends SchematicWork>> getSchematicWork() {
+		return schematicWorks;
 	}
 	
 	public String getName() {
@@ -143,14 +129,6 @@ public class Schematic {
 	
 	public List<SchematicEntry> getSchematicData() {
 		return schematicData;
-	}
-	
-	public int getRadius() {
-		return data.getInt("radius");
-	}
-	
-	public Config getData() {
-		return data;
 	}
 	
 	public double getSizeX() {
@@ -163,18 +141,6 @@ public class Schematic {
 	
 	public double getSizeZ() {
 		return sizeZ;
-	}
-	
-	public double getCenterX() {
-		return data.getDouble("center.x");
-	}
-	
-	public double getCenterY() {
-		return data.getDouble("center.y");
-	}
-	
-	public double getCenterZ() {
-		return data.getDouble("center.z");
 	}
 	
 	@Override

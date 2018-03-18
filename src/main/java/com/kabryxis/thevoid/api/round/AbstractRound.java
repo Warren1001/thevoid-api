@@ -1,13 +1,12 @@
 package com.kabryxis.thevoid.api.round;
 
+import com.kabryxis.kabutils.data.file.yaml.Config;
+import org.bukkit.inventory.ItemStack;
+
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import org.bukkit.inventory.ItemStack;
-
-import com.kabryxis.kabutils.data.file.yaml.Config;
 
 public abstract class AbstractRound implements Round {
 	
@@ -19,23 +18,30 @@ public abstract class AbstractRound implements Round {
 	
 	protected final String name;
 	protected final Config config;
-	protected final List<String> worldNames;
-	protected final List<String> schematics;
 	protected final ItemStack[] inventory = new ItemStack[36], armor = new ItemStack[4];
 	
+	protected List<String> worldNames;
+	protected List<String> schematics;
 	protected int roundLength, startingPoints;
 	
 	public AbstractRound(String name, int startingPoints) {
 		this.name = name;
-		this.config = new Config(directory + name);
+		this.startingPoints = startingPoints;
+		this.config = new Config(directory + name + ".yml");
 		if(!config.exists()) {
 			generateDefaults();
+			this.roundLength = config.get("round-length", Integer.class);
+			this.worldNames = config.getList("world-names", String.class);
+			this.schematics = config.getList("schematics", String.class);
 			config.save();
 		}
-		this.roundLength = config.get("round-length", Integer.class);
-		this.worldNames = config.getList("world-names", String.class);
-		this.schematics = config.getList("schematics", String.class);
-		this.startingPoints = startingPoints;
+		else {
+			config.load(config -> {
+				this.roundLength = config.get("round-length", Integer.class);
+				this.worldNames = config.getList("world-names", String.class);
+				this.schematics = config.getList("schematics", String.class);
+			});
+		}
 	}
 	
 	public abstract void generateDefaults();
