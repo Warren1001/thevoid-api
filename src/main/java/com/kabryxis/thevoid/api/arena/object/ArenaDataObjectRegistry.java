@@ -29,11 +29,11 @@ public class ArenaDataObjectRegistry {
 	public void handle(BaseSchematicData data) {
 		BaseSchematic schematic = data.getSchematic();
 		for(String key : schematic.getData().getKeys(true)) {
-			if(data.hasDataObject(key)) continue;
 			Constructor<? extends ArenaDataObject> creator = dataObjectCreators.get(key);
 			if(creator == null) continue;
+			if(data.hasDataObject(creator.getDeclaringClass())) continue;
 			try {
-				data.registerDataObject(key, creator.newInstance(schematic, data.getArena()));
+				data.registerDataObject(creator.newInstance(schematic, data.getArena()));
 			}
 			catch(InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 				e.printStackTrace();

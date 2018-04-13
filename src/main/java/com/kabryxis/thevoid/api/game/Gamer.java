@@ -1,16 +1,12 @@
 package com.kabryxis.thevoid.api.game;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
-
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Sound;
+import com.kabryxis.kabutils.spigot.concurrent.BukkitThreads;
+import com.kabryxis.kabutils.spigot.version.WrappableCache;
+import com.kabryxis.kabutils.spigot.version.wrapper.entity.player.WrappedEntityPlayer;
+import com.kabryxis.kabutils.spigot.version.wrapper.packet.WrappedPacket;
+import com.kabryxis.kabutils.spigot.version.wrapper.packet.out.chat.WrappedPacketPlayOutChat;
+import com.kabryxis.thevoid.api.schematic.BlockSelection;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
@@ -19,14 +15,12 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.util.Vector;
 
-import com.kabryxis.kabutils.spigot.concurrent.BukkitThreads;
-import com.kabryxis.kabutils.spigot.version.wrapper.WrapperCache;
-import com.kabryxis.kabutils.spigot.version.wrapper.entity.player.WrappedEntityPlayer;
-import com.kabryxis.kabutils.spigot.version.wrapper.packet.WrappedPacket;
-import com.kabryxis.kabutils.spigot.version.wrapper.packet.out.chat.WrappedPacketPlayOutChat;
-import com.kabryxis.thevoid.api.schematic.BlockSelection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public class Gamer {
 	
@@ -59,7 +53,7 @@ public class Gamer {
 	
 	public Gamer(UUID uuid) {
 		this.uuid = uuid;
-		this.entityPlayer = WrapperCache.get(WrappedEntityPlayer.class);
+		this.entityPlayer = WrappableCache.get(WrappedEntityPlayer.class);
 		updatePlayer();
 		reset();
 	}
@@ -148,9 +142,9 @@ public class Gamer {
 		return player.getLocation();
 	}
 	
-	public Vector getArenaLocation() {
+	/*public Vector getArenaLocation() {
 		return game.getCurrentRoundInfo().getArena().getArenaLocation(getWorldLocation());
-	}
+	}*/
 	
 	public void forEachBlockStanding(Predicate<Block> predicate, Consumer<Block> action) {
 		Location loc = player.getLocation().subtract(0, 0.1, 0);
@@ -175,7 +169,7 @@ public class Gamer {
 	}
 	
 	public void sendActionMessage(String message) {
-		WrappedPacketPlayOutChat<?> packet = WrapperCache.get(WrappedPacketPlayOutChat.class);
+		WrappedPacketPlayOutChat<?> packet = WrappableCache.get(WrappedPacketPlayOutChat.class);
 		packet.newInstance(message);
 		entityPlayer.sendPacket(packet);
 		packet.cache();
@@ -219,20 +213,19 @@ public class Gamer {
 	}
 	
 	public void startSpectating() {
-		if(!BukkitThreads.isMainThread()) {
-			BukkitThreads.sync(this::startSpectating0);
-		}
+		if(!isAlive()) return;
+		if(!BukkitThreads.isMainThread()) BukkitThreads.sync(this::startSpectating0);
 		else startSpectating0();
 	}
 	
 	public void startSpectating(Location teleport) {
-		if(!BukkitThreads.isMainThread()) {
-			BukkitThreads.sync(() -> startSpectating0(teleport));
-		}
+		if(!isAlive()) return;
+		if(!BukkitThreads.isMainThread()) BukkitThreads.sync(() -> startSpectating0(teleport));
 		else startSpectating0(teleport);
 	}
 	
 	private void startSpectating0() {
+		game.died(this);
 		player.setGameMode(GameMode.SPECTATOR);
 		player.setFlying(true);
 	}
@@ -243,16 +236,12 @@ public class Gamer {
 	}
 	
 	public void stopSpectating() {
-		if(!BukkitThreads.isMainThread()) {
-			BukkitThreads.sync(this::stopSpectating0);
-		}
+		if(!BukkitThreads.isMainThread()) BukkitThreads.sync(this::stopSpectating0);
 		else stopSpectating0();
 	}
 	
 	public void stopSpectating(Location teleport) {
-		if(!BukkitThreads.isMainThread()) {
-			BukkitThreads.sync(() -> stopSpectating0(teleport));
-		}
+		if(!BukkitThreads.isMainThread()) BukkitThreads.sync(() -> stopSpectating0(teleport));
 		else stopSpectating0(teleport);
 	}
 	

@@ -1,12 +1,11 @@
 package com.kabryxis.thevoid.api.game;
 
-import java.util.function.Consumer;
-import java.util.logging.Logger;
-
+import com.kabryxis.thevoid.api.round.RoundInfo;
 import org.bukkit.event.Event;
 import org.bukkit.plugin.Plugin;
 
-import com.kabryxis.thevoid.api.round.RoundInfo;
+import java.util.function.Consumer;
+import java.util.logging.Logger;
 
 public interface Game {
 	
@@ -45,5 +44,7 @@ public interface Game {
 	void addGamer(Gamer gamer);
 	
 	void removeGamer(Gamer gamer);
+	
+	void died(Gamer gamer);
 	
 }

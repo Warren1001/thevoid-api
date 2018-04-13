@@ -1,29 +1,25 @@
 package com.kabryxis.thevoid.api.arena;
 
-import com.kabryxis.kabutils.cache.Cache;
-import com.kabryxis.kabutils.data.Lists;
+import com.boydti.fawe.FaweAPI;
+import com.boydti.fawe.util.EditSessionBuilder;
+import com.kabryxis.kabutils.random.Weighted;
 import com.kabryxis.kabutils.spigot.data.Config;
-import com.kabryxis.kabutils.spigot.version.wrapper.world.world.WrappedWorld;
-import com.kabryxis.kabutils.spigot.world.ChunkEntry;
-import com.kabryxis.kabutils.spigot.world.WorldManager;
+import com.kabryxis.kabutils.spigot.world.ChunkLoader;
 import com.kabryxis.thevoid.api.arena.object.ArenaDataObjectRegistry;
-import com.kabryxis.thevoid.api.arena.object.ArenaWalkable;
 import com.kabryxis.thevoid.api.schematic.BaseSchematic;
 import com.kabryxis.thevoid.api.schematic.Schematic;
 import com.kabryxis.thevoid.api.schematic.SchematicEntry;
+import com.sk89q.worldedit.EditSession;
 import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
 import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
+import org.bukkit.World;
 import org.bukkit.entity.Entity;
-import org.bukkit.util.Vector;
 
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class Arena {
+public class Arena implements Weighted {
 	
 	public final static String PATH = "plugins" + File.separator + "TheVoid" + File.separator + "arenas" + File.separator;
 	
@@ -33,8 +29,11 @@ public class Arena {
 	private final ArenaDataObjectRegistry registry;
 	private final String name;
 	private final boolean orientation;
+	private final int weight;
 	private final Location start;
-	private final WrappedWorld<?> world;
+	//private final WrappedWorld<?> world;
+	private final World world;
+	private final EditSession editSession;
 	
 	private BaseSchematicData currentSchematicData;
 	private Set<SchematicData> otherCurrentSchematics;
@@ -45,16 +44,22 @@ public class Arena {
 		this.registry = registry;
 		this.name = config.getName();
 		this.orientation = config.getBoolean("orientation");
+		this.weight = config.getInt("weight");
 		this.start = new Location(Bukkit.getWorld(config.getString("world")), config.getDouble("x"), config.getDouble("y"), config.getDouble("z"));
-		this.world = WorldManager.getWorld(start.getWorld());
+		//this.world = WorldManager.getWorld(start.getWorld());
+		this.world = start.getWorld();
+		this.editSession = new EditSessionBuilder(FaweAPI.getWorld(world.getName())).fastmode(true).build();
 	}
 	
-	public Arena(ArenaDataObjectRegistry registry, String name, boolean orientation, Location start) {
+	public Arena(ArenaDataObjectRegistry registry, String name, boolean orientation, int weight, Location start) {
 		this.registry = registry;
 		this.name = name;
 		this.orientation = orientation;
+		this.weight = weight;
 		this.start = start;
-		this.world = WorldManager.getWorld(start.getWorld());
+		//this.world = WorldManager.getWorld(start.getWorld());
+		this.world = start.getWorld();
+		this.editSession = new EditSessionBuilder(FaweAPI.getWorld(world.getName())).fastmode(true).build();
 	}
 	
 	public ArenaDataObjectRegistry getRegistry() {
@@ -69,12 +74,24 @@ public class Arena {
 		return orientation;
 	}
 	
-	public WrappedWorld<?> getWorld() {
+	/*public WrappedWorld<?> getWorld() {
+		return world;
+	}*/
+	
+	public World getWorld() {
 		return world;
 	}
 	
 	public String getWorldName() {
 		return world.getName();
+	}
+	
+	public EditSession getEditSession() {
+		return editSession;
+	}
+	
+	public int getWeight() {
+		return weight;
 	}
 	
 	public Location getLocation() {
@@ -89,28 +106,32 @@ public class Arena {
 	
 	private BaseSchematicData getSchematicData(BaseSchematic schematic) {
 		BaseSchematicData schematicData = new BaseSchematicData(schematic, this);
-		Map<Long, List<ChunkEntry>> chunkData = new HashMap<>();
+		Set<ArenaEntry> arenaData = new HashSet<>();
 		List<SchematicEntry> data = schematic.getSchematicData();
 		Location center = start.clone();
-		int lowestY = Integer.MAX_VALUE;
+		int lx = Integer.MAX_VALUE, ly = Integer.MAX_VALUE, lz = Integer.MAX_VALUE;
+		int mx = Integer.MIN_VALUE, mz = Integer.MIN_VALUE;
 		double halfX = schematic.getSizeX() / 2.0, halfY = schematic.getSizeY() / 2.0, halfZ = schematic.getSizeZ() / 2.0;
-		for(SchematicEntry entry : data) {
-			int tempX = entry.getX() + center.getBlockX(), tempY = entry.getY() + center.getBlockY(), tempZ = entry.getZ() + center.getBlockZ();
+		for(SchematicEntry schematicEntry : data) {
+			int x = schematicEntry.getX() + center.getBlockX(), y = schematicEntry.getY() + center.getBlockY(), z = schematicEntry.getZ() + center.getBlockZ();
 			if(orientation) {
-				tempX -= halfX;
-				tempY -= halfY;
-				tempZ -= halfZ;
+				x -= halfX;
+				y -= halfY;
+				z -= halfZ;
 			}
-			int trueX = tempX, trueY = tempY, trueZ = tempZ;
-			ChunkEntry chunkEntry = Cache.get(ChunkEntry.class);
-			chunkEntry.reuse(trueX & 0x0f, trueY, trueZ & 0x0f, entry.getType(), entry.getData());
-			chunkData.computeIfAbsent(world.toLong(trueX >> 4, trueZ >> 4), Lists.getGenericCreator()).add(chunkEntry);
-			schematicData.forEachDataObject(object -> object.next(entry, trueX, trueY, trueZ));
-			if(trueY < lowestY) lowestY = trueY;
+			if(x < lx) lx = x;
+			if(x > mx) mx = x;
+			if(y < ly) ly = y;
+			if(z < lz) lz = z;
+			if(z > mz) mz = z;
+			ArenaEntry arenaEntry = new ArenaEntry(x, y, z, schematicEntry.getType().getId(), schematicEntry.getData());
+			arenaData.add(arenaEntry);
+			schematicData.forEachDataObject(object -> object.next(schematicEntry, arenaEntry));
 		}
 		if(!orientation) center.add(schematic.getCenterX(), schematic.getCenterY(), schematic.getCenterZ());
-		schematicData.setCurrentChunkData(chunkData);
+		schematicData.setCurrentArenaData(arenaData);
 		schematicData.setCenter(center);
+		schematicData.setMinsAndMaxs(lx, ly, lz, mx, mz);
 		arenaDatas.put(schematic, schematicData);
 		return schematicData;
 	}
@@ -124,17 +145,15 @@ public class Arena {
 		}
 		if(otherCurrentSchematics == null) otherCurrentSchematics = new HashSet<>(3);
 		SchematicData schematicData = new SchematicData(schematic, this);
-		Map<Long, List<ChunkEntry>> chunkData = new HashMap<>();
+		Set<ArenaEntry> arenaData = new HashSet<>();
 		List<SchematicEntry> data = schematic.getSchematicData();
 		Location center = getCurrentSchematicData().getCenter();
 		double halfX = schematic.getSizeX() / 2.0, halfZ = schematic.getSizeZ() / 2.0;
 		for(SchematicEntry entry : data) {
 			int x = (int)Math.ceil((double)entry.getX() + center.getX() - halfX) - 1, y = (int)Math.ceil((double)entry.getY() + center.getY()), z = (int)Math.ceil((double)entry.getZ() + center.getZ() - halfZ);
-			ChunkEntry chunkEntry = Cache.get(ChunkEntry.class);
-			chunkEntry.reuse(x & 0x0f, y, z & 0x0f, entry.getType(), entry.getData());
-			chunkData.computeIfAbsent(world.toLong(x >> 4, z >> 4), Lists.getGenericCreator()).add(chunkEntry);
+			arenaData.add(new ArenaEntry(x, y, z, entry.getType().getId(), entry.getData()));
 		}
-		schematicData.setCurrentChunkData(chunkData);
+		schematicData.setCurrentArenaData(arenaData);
 		arenaDatas.put(schematic, schematicData);
 		otherCurrentSchematics.add(schematicData);
 		schematicData.loadSchematic();
@@ -151,25 +170,27 @@ public class Arena {
 	
 	public void eraseSchematic() {
 		if(hasNextArenaData() && getNextArenaData().equals(currentSchematicData)) return;
-		world.eraseSchematic(currentSchematicData.getCurrentChunkData());
+		ChunkLoader.releaseFromMemory(this);
+		currentSchematicData.eraseSchematic();
+		//world.eraseSchematic(currentSchematicData.getCurrentChunkData());
 		if(otherCurrentSchematics != null && !otherCurrentSchematics.isEmpty()) {
-			otherCurrentSchematics.forEach(sch -> world.eraseSchematic(sch.getCurrentChunkData()));
+			otherCurrentSchematics.forEach(SchematicData::eraseSchematic);
 			otherCurrentSchematics.clear();
 		}
-		if(schematics.isEmpty()) WorldManager.removeChunksFromMemory(name);
 	}
 	
 	public void loadChunks() {
-		WorldManager.removeChunksFromMemory(name);
+		getCurrentSchematicData().preloadChunks();
+		/*WorldManager.removeChunksFromMemory(name);
 		for(Long key : currentSchematicData.getCurrentChunkData().keySet()) {
 			WorldManager.keepChunkInMemory(name, key);
 			int cx = world.getChunkX(key), cz = world.getChunkZ(key);
 			Chunk chunk = world.getWorld().getChunkAt(cx, cz);
 			if(!chunk.isLoaded()) chunk.load();
-		}
+		}*/
 	}
 	
-	public void setBlock(int x, int y, int z, Material type, byte data) {
+	/*public void setBlock(int x, int y, int z, Material type, byte data) {
 		world.setBlock(start.getBlockX() + x, start.getBlockY() + y, start.getBlockZ() + z, type, data);
 	}
 	
@@ -183,11 +204,7 @@ public class Arena {
 	
 	public Block getBlock(int x, int y, int z) {
 		return world.getBlock(start.getBlockX() + x, start.getBlockY() + y, start.getBlockZ() + z);
-	}
-	
-	public List<Location> getWalkableLocations() {
-		return Lists.softCopy(((ArenaWalkable)currentSchematicData.getDataObject("walkable")).get());
-	}
+	}*/
 	
 	public void endOfRound() {
 		if(spawnedEntities != null) {
@@ -196,24 +213,24 @@ public class Arena {
 		}
 	}
 	
-	public <T extends Entity> T spawnEntity(double x, double y, double z, Class<T> clazz) {
-		T entity = world.getWorld().spawn(getWorldLocation(x, y, z), clazz);
+	/*public <T extends Entity> T spawnEntity(double x, double y, double z, Class<T> clazz) {
+		T entity = world.spawn(getWorldLocation(x, y, z), clazz);
 		spawnedCustomEntity(entity);
 		return entity;
-	}
+	}*/
 	
 	public void spawnedCustomEntity(Entity entity) {
 		if(spawnedEntities == null) spawnedEntities = new HashSet<>();
 		spawnedEntities.add(entity);
 	}
 	
-	public Vector getArenaLocation(Location loc) {
+	/*public Vector getArenaLocation(Location loc) {
 		return new Vector(loc.getX() - start.getBlockX(), loc.getY() - start.getBlockY(), loc.getZ() - start.getBlockZ());
 	}
 	
 	public Location getWorldLocation(double x, double y, double z) {
 		return new Location(world.getWorld(), start.getX() + x, start.getY() + y, start.getZ() + z);
-	}
+	}*/
 	
 	public Location getCenter() {
 		return currentSchematicData.getCenter();

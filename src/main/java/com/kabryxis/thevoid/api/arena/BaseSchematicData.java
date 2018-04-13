@@ -1,9 +1,12 @@
 package com.kabryxis.thevoid.api.arena;
 
+import com.kabryxis.kabutils.spigot.concurrent.BukkitThreads;
+import com.kabryxis.kabutils.spigot.world.ChunkLoader;
 import com.kabryxis.thevoid.api.arena.object.ArenaDataObject;
 import com.kabryxis.thevoid.api.schematic.BaseSchematic;
-import com.kabryxis.thevoid.api.schematic.Schematic;
+import org.bukkit.Chunk;
 import org.bukkit.Location;
+import org.bukkit.World;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,16 +14,24 @@ import java.util.function.Consumer;
 
 public class BaseSchematicData extends SchematicData {
 	
-	private Map<String, ArenaDataObject> dataObjects;
-	private Location center;
+	private final Map<Class<? extends ArenaDataObject>, ArenaDataObject> dataObjects = new HashMap<>();
 	
-	public BaseSchematicData(Schematic schematic, Arena arena) {
+	private Location center;
+	private int lx, ly, lz;
+	private int mx, mz;
+	
+	public BaseSchematicData(BaseSchematic schematic, Arena arena) {
 		super(schematic, arena);
 		arena.getRegistry().handle(this);
 	}
 	
+	@Override
 	public BaseSchematic getSchematic() {
 		return (BaseSchematic)super.getSchematic();
+	}
+	
+	public boolean isOdd() {
+		return getSchematic().isOdd();
 	}
 	
 	public void setCenter(Location center) {
@@ -31,17 +42,40 @@ public class BaseSchematicData extends SchematicData {
 		return center;
 	}
 	
-	public void registerDataObject(String name, ArenaDataObject dataObject) {
-		if(dataObjects == null) dataObjects = new HashMap<>();
-		dataObjects.put(name, dataObject);
+	public void setMinsAndMaxs(int lx, int ly, int lz, int mx, int mz) {
+		this.lx = lx;
+		this.ly = ly;
+		this.lz = lz;
+		this.mx = mx;
+		this.mz = mz;
 	}
 	
-	public ArenaDataObject getDataObject(String name) {
-		return dataObjects == null ? null : dataObjects.get(name);
+	public void preloadChunks() {
+		int lcx = lx >> 4, lcz = lz >> 4, mcx = mx >> 4, mcz = mz >> 4;
+		Arena arena = getArena();
+		World world = arena.getWorld();
+		BukkitThreads.sync(() -> {
+			for(int cx = lcx; cx <= mcx; cx++) {
+				for(int cz = lcz; cz <= mcz; cz++) {
+					Chunk chunk = world.getChunkAt(cx, cz);
+					ChunkLoader.keepInMemory(arena, chunk);
+					if(!chunk.isLoaded()) chunk.load();
+				}
+			}
+		});
 	}
 	
-	public boolean hasDataObject(String name) {
-		return dataObjects != null && dataObjects.get(name) != null;
+	public void registerDataObject(ArenaDataObject dataObject) {
+		dataObjects.put(dataObject.getClass(), dataObject);
+	}
+	
+	public <T extends ArenaDataObject> T getDataObject(Class<T> clazz) {
+		ArenaDataObject object = dataObjects.get(clazz);
+		return object == null ? null : clazz.cast(object);
+	}
+	
+	public boolean hasDataObject(Class<? extends ArenaDataObject> clazz) {
+		return dataObjects.get(clazz) != null;
 	}
 	
 	public void forEachDataObject(Consumer<? super ArenaDataObject> action) {
