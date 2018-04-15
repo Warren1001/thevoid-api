@@ -16,11 +16,7 @@ import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
+import java.util.*;
 
 public class Gamer {
 	
@@ -146,22 +142,24 @@ public class Gamer {
 		return game.getCurrentRoundInfo().getArena().getArenaLocation(getWorldLocation());
 	}*/
 	
-	public void forEachBlockStanding(Predicate<Block> predicate, Consumer<Block> action) {
+	public Set<Block> getStandingBlocks() {
+		Set<Block> blocks = new HashSet<>(4);
 		Location loc = player.getLocation().subtract(0, 0.1, 0);
 		Block block = loc.getBlock();
 		double offsetX = loc.getX() - loc.getBlockX(), offsetZ = loc.getZ() - loc.getBlockZ();
 		boolean two = false, lessX = offsetX <= 0.3, lessZ = offsetZ <= 0.3;
-		if(predicate.test(block)) action.accept(block);
+		blocks.add(block);
 		if(lessX || offsetX >= 0.7) { // posx = east, posz = south
 			Block b = block.getRelative(lessX ? BlockFace.WEST : BlockFace.EAST);
-			if(predicate.test(b)) action.accept(b);
+			blocks.add(b);
 			two = true;
 		}
 		if(lessZ || offsetZ >= 0.7) {
 			block = block.getRelative(lessZ ? BlockFace.NORTH : BlockFace.SOUTH);
-			if(predicate.test(block)) action.accept(block);
-			if(two && predicate.test(block)) action.accept(block.getRelative(lessX ? BlockFace.WEST : BlockFace.EAST));
+			blocks.add(block);
+			if(two) blocks.add(block.getRelative(lessX ? BlockFace.WEST : BlockFace.EAST));
 		}
+		return blocks;
 	}
 	
 	public void setScoreboard(Scoreboard board) {

@@ -23,6 +23,7 @@ public class BaseSchematic extends Schematic implements Weighted {
 		data.set("odd", odd);
 		data.set("radius", radius);
 		data.set("weight", weight);
+		data.set("time-modifier", 1.0);
 		ConfigurationSection cent = data.createSection("center");
 		cent.set("x", centerX - lowestX);
 		cent.set("y", centerY - lowestY);
@@ -41,6 +42,10 @@ public class BaseSchematic extends Schematic implements Weighted {
 	@Override
 	public int getWeight() {
 		return data.getInt("weight");
+	}
+	
+	public double getTimeModifier() {
+		return data.getDouble("time-modifier");
 	}
 	
 	public Config getData() {

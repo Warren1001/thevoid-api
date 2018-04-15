@@ -49,9 +49,7 @@ public abstract class VoidRound implements Round {
 		}
 	}
 	
-	public abstract void generateDefaults();
-	
-	protected void useDefaults() {
+	public void generateDefaults() {
 		config.set("round-length", VoidRound.DEFAULT_roundLength);
 		config.set("world-names", VoidRound.DEFAULT_worldNames);
 		config.set("schematics", VoidRound.DEFAULT_schematics);
@@ -97,8 +95,5 @@ public abstract class VoidRound implements Round {
 	public ItemStack[] getArmor() {
 		return armor;
 	}
-	
-	@Override
-	public void customTimer() {}
 	
 }
