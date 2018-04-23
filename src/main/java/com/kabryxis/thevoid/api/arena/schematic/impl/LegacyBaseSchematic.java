@@ -1,22 +1,34 @@
-package com.kabryxis.thevoid.api.schematic;
+package com.kabryxis.thevoid.api.arena.schematic.impl;
 
 import com.kabryxis.kabutils.random.Weighted;
 import com.kabryxis.kabutils.spigot.data.Config;
+import com.kabryxis.thevoid.api.arena.schematic.util.BlockSelection;
+import com.kabryxis.thevoid.api.arena.schematic.util.SchematicEntry;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.List;
 
-public class BaseSchematic extends Schematic implements Weighted {
+public class LegacyBaseSchematic extends LegacySchematic implements Weighted {
+	
+	public static final LegacyBaseSchematic EMPTY = new LegacyBaseSchematic(null, "empty", Collections.emptyList());
 	
 	private final Config data;
 	
-	public BaseSchematic(File file) {
+	public LegacyBaseSchematic(File file) {
 		super(file);
 		this.data = Config.get(new File(PATH + getName() + "-data.yml"));
 		data.load();
 	}
 	
-	public BaseSchematic(String name, BlockSelection selection, double centerX, double centerY, double centerZ, int radius, int weight, boolean odd) {
+	public LegacyBaseSchematic(File file, String name, List<SchematicEntry> schematicData) {
+		super(file, name, schematicData);
+		this.data = Config.get(new File(PATH + getName() + "-data.yml"));
+		data.load();
+	}
+	
+	public LegacyBaseSchematic(String name, BlockSelection selection, double centerX, double centerY, double centerZ, int radius, int weight, boolean odd) {
 		super(name, selection, false);
 		this.data = Config.get(new File(PATH + name + "-data.yml"));
 		double lowestX = selection.getLowestX(), lowestY = selection.getLowestY(), lowestZ = selection.getLowestZ();

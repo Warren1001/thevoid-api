@@ -1,11 +1,11 @@
 package com.kabryxis.thevoid.api.game;
 
-import com.kabryxis.kabutils.spigot.concurrent.BukkitThreads;
 import com.kabryxis.kabutils.spigot.version.WrappableCache;
 import com.kabryxis.kabutils.spigot.version.wrapper.entity.player.WrappedEntityPlayer;
 import com.kabryxis.kabutils.spigot.version.wrapper.packet.WrappedPacket;
 import com.kabryxis.kabutils.spigot.version.wrapper.packet.out.chat.WrappedPacketPlayOutChat;
-import com.kabryxis.thevoid.api.schematic.BlockSelection;
+import com.kabryxis.thevoid.api.round.Round;
+import com.kabryxis.thevoid.api.arena.schematic.util.BlockSelection;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -37,6 +37,7 @@ public class Gamer {
 	
 	private Player player;
 	
+	private boolean alive = true;
 	private int roundPoints = 0;
 	private Score gamePointsAlive;
 	private Score gamePointsDead;
@@ -114,7 +115,8 @@ public class Gamer {
 	}
 	
 	public void reset() {
-		if(!isAlive()) stopSpectating();
+		player.setGameMode(GameMode.ADVENTURE);
+		player.setFlying(false);
 		Objective obj = Bukkit.getScoreboardManager().getMainScoreboard().getObjective("thevoid-points");
 		gamePointsAlive = obj.getScore(ChatColor.GREEN + player.getDisplayName());
 		gamePointsDead = obj.getScore(ChatColor.DARK_GRAY + player.getDisplayName());
@@ -184,13 +186,6 @@ public class Gamer {
 	}
 	
 	public void teleport(Location location) {
-		if(/*!player.getLocation().getWorld().getName().equals(location.getWorld().getName()) && */!BukkitThreads.isMainThread()) {
-			BukkitThreads.sync(() -> teleport0(location));
-		}
-		else teleport0(location);
-	}
-	
-	private void teleport0(Location location) {
 		player.teleport(location);
 	}
 	
@@ -207,82 +202,43 @@ public class Gamer {
 	}
 	
 	public boolean isAlive() {
-		return player.getGameMode() == GameMode.SURVIVAL;
+		return alive;
 	}
 	
-	public void startSpectating() {
-		if(!isAlive()) return;
-		if(!BukkitThreads.isMainThread()) BukkitThreads.sync(this::startSpectating0);
-		else startSpectating0();
+	public void setAlive(boolean alive) {
+		if(this.alive && !alive) {
+			int points = gamePointsAlive.getScore();
+			player.getScoreboard().resetScores(gamePointsAlive.getEntry());
+			gamePointsDead.setScore(points);
+		}
+		else if(!this.alive && alive) {
+			int points = gamePointsDead.getScore();
+			player.getScoreboard().resetScores(gamePointsDead.getEntry());
+			gamePointsAlive.setScore(points);
+			game.revive(this);
+		}
+		this.alive = alive;
 	}
 	
-	public void startSpectating(Location teleport) {
-		if(!isAlive()) return;
-		if(!BukkitThreads.isMainThread()) BukkitThreads.sync(() -> startSpectating0(teleport));
-		else startSpectating0(teleport);
+	public void setGameMode(GameMode gameMode) {
+		player.setGameMode(gameMode);
 	}
 	
-	private void startSpectating0() {
-		game.died(this);
-		player.setGameMode(GameMode.SPECTATOR);
-		player.setFlying(true);
-	}
-	
-	private void startSpectating0(Location teleport) {
-		startSpectating0();
-		teleport0(teleport);
-	}
-	
-	public void stopSpectating() {
-		if(!BukkitThreads.isMainThread()) BukkitThreads.sync(this::stopSpectating0);
-		else stopSpectating0();
-	}
-	
-	public void stopSpectating(Location teleport) {
-		if(!BukkitThreads.isMainThread()) BukkitThreads.sync(() -> stopSpectating0(teleport));
-		else stopSpectating0(teleport);
-	}
-	
-	private void stopSpectating0() {
-		player.setGameMode(GameMode.SURVIVAL);
+	public void nextRound(Round round, Location spawn) {
+		setRoundPoints(0, true);
+		setGameMode(round.getGameMode());
 		player.setFlying(false);
+		setInventory(round.getInventory(), round.getArmor());
+		setRoundPoints(round.getStartingPoints(), false);
+		teleport(spawn);
 	}
 	
-	private void stopSpectating0(Location teleport) {
-		stopSpectating0();
-		teleport0(teleport);
-	}
-	
-	public void kill() {
-		startSpectating();
-		kill0();
-	}
-	
-	public void kill(Location teleport) {
-		startSpectating(teleport);
-		kill0();
-	}
-	
-	private void kill0() {
-		int points = gamePointsAlive.getScore();
-		player.getScoreboard().resetScores(gamePointsAlive.getEntry());
-		gamePointsDead.setScore(points);
-	}
-	
-	public void revive() {
-		stopSpectating();
-		revive0();
-	}
-	
-	public void revive(Location teleport) {
-		stopSpectating(teleport);
-		revive0();
-	}
-	
-	private void revive0() {
-		int points = gamePointsDead.getScore();
-		player.getScoreboard().resetScores(gamePointsDead.getEntry());
-		gamePointsAlive.setScore(points);
+	public boolean kill() {
+		setAlive(false);
+		boolean ending = game.kill(this);
+		setGameMode(GameMode.SPECTATOR);
+		player.setFlying(true);
+		return ending;
 	}
 	
 	public int incrementRoundPoints(boolean setLevel) {
@@ -338,7 +294,7 @@ public class Gamer {
 	}
 	
 	public int getGamePoints() {
-		return player.getGameMode() == GameMode.SPECTATOR ? gamePointsDead.getScore() : gamePointsAlive.getScore();
+		return alive ? gamePointsAlive.getScore() : gamePointsDead.getScore();
 	}
 	
 	public long getGamePointsTimeAchieved() {

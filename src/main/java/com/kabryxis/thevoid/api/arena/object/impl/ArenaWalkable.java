@@ -1,11 +1,12 @@
-package com.kabryxis.thevoid.api.arena.object;
+package com.kabryxis.thevoid.api.arena.object.impl;
 
 import com.kabryxis.kabutils.data.Arrays;
 import com.kabryxis.kabutils.string.Strings;
 import com.kabryxis.thevoid.api.arena.Arena;
 import com.kabryxis.thevoid.api.arena.ArenaEntry;
-import com.kabryxis.thevoid.api.schematic.BaseSchematic;
-import com.kabryxis.thevoid.api.schematic.SchematicEntry;
+import com.kabryxis.thevoid.api.arena.object.ArenaDataObject;
+import com.kabryxis.thevoid.api.arena.schematic.IBaseSchematic;
+import com.kabryxis.thevoid.api.arena.schematic.util.SchematicEntry;
 import com.sk89q.worldedit.Vector;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -16,11 +17,11 @@ public class ArenaWalkable implements ArenaDataObject {
 	
 	private final List<Location> walkableLocs = new ArrayList<>();
 	private final List<Set<Block>> diamondPatternBlocks = new ArrayList<>();
-	private final BaseSchematic schematic;
+	private final IBaseSchematic schematic;
 	private final Arena arena;
 	private final int[] walkableY;
 	
-	public ArenaWalkable(BaseSchematic schematic, Arena arena) {
+	public ArenaWalkable(IBaseSchematic schematic, Arena arena) {
 		this.schematic = schematic;
 		this.arena = arena;
 		String[] walkableSplit = Strings.split(schematic.getData().getString("walkable"), ",");

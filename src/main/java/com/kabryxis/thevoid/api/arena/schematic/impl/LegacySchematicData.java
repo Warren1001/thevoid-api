@@ -1,8 +1,8 @@
-package com.kabryxis.thevoid.api.arena;
+package com.kabryxis.thevoid.api.arena.schematic.impl;
 
-import com.kabryxis.thevoid.api.schematic.Schematic;
-import com.kabryxis.thevoid.api.schematic.SchematicWork;
-import com.sk89q.worldedit.EditSession;
+import com.kabryxis.thevoid.api.arena.ArenaEntry;
+import com.kabryxis.thevoid.api.arena.impl.LegacyArena;
+import com.kabryxis.thevoid.api.arena.schematic.util.SchematicWork;
 import com.sk89q.worldedit.Vector;
 import org.bukkit.Material;
 
@@ -10,18 +10,17 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class SchematicData {
+public class LegacySchematicData {
 	
-	private final Schematic schematic;
-	private final Arena arena;
+	private final LegacySchematic schematic;
+	private final LegacyArena arena;
 	
-	//private Map<Long, List<ChunkEntry>> chunkData;
 	private Set<ArenaEntry> arenaData;
 	
 	private Map<Class<? extends SchematicWork>, SchematicWork> extraWorks;
 	private int lowestY;
 	
-	public SchematicData(Schematic schematic, Arena arena) {
+	public LegacySchematicData(LegacySchematic schematic, LegacyArena arena) {
 		this.schematic = schematic;
 		this.arena = arena;
 		if(schematic.hasSchematicWork()) {
@@ -38,29 +37,13 @@ public class SchematicData {
 		}
 	}
 	
-	public Schematic getSchematic() {
+	public LegacySchematic getSchematic() {
 		return schematic;
 	}
 	
-	public Arena getArena() {
+	public LegacyArena getArena() {
 		return arena;
 	}
-	
-	/*public void setCurrentChunkData(Map<Long, List<ChunkEntry>> chunkData) {
-		this.chunkData = chunkData;
-		lowestY = Integer.MAX_VALUE;
-		for(Map.Entry<Long, List<ChunkEntry>> entry : chunkData.entrySet()) {
-			long chunk = entry.getKey();
-			int cx = arena.getWorld().getChunkX(chunk), cz = arena.getWorld().getChunkZ(chunk);
-			for(ChunkEntry chunkEntry : entry.getValue()) {
-				int x = chunkEntry.getX(), y = chunkEntry.getY(), z = chunkEntry.getZ();
-				Material type = chunkEntry.getType();
-				int data = chunkEntry.getData();
-				if(y < lowestY) lowestY = y;
-				if(extraWorks != null) extraWorks.values().forEach(extra -> extra.doExtra(arena.getWorld().getWorld().getChunkAt(cx, cz).getBlock(x, y, z), type, data));
-			}
-		}
-	}*/
 	
 	public void setCurrentArenaData(Set<ArenaEntry> arenaData) {
 		this.arenaData = arenaData;
@@ -75,10 +58,6 @@ public class SchematicData {
 		}
 	}
 	
-	/*public Map<Long, List<ChunkEntry>> getCurrentChunkData() {
-		return chunkData;
-	}*/
-	
 	public Set<ArenaEntry> getCurrentArenaData() {
 		return arenaData;
 	}
@@ -92,16 +71,15 @@ public class SchematicData {
 	}
 	
 	public void loadSchematic() {
-		//arena.getWorld().loadSchematic(chunkData);
-		EditSession editSession = arena.getEditSession();
+		/*EditSession editSession = arena.getEditSession();
 		arenaData.forEach(arenaEntry -> arenaEntry.set(editSession));
-		editSession.flushQueue();
+		editSession.flushQueue();*/
 	}
 	
 	public void eraseSchematic() {
-		EditSession editSession = arena.getEditSession();
+		/*EditSession editSession = arena.getEditSession();
 		arenaData.forEach(arenaEntry -> arenaEntry.erase(editSession));
-		editSession.flushQueue();
+		editSession.flushQueue();*/
 	}
 	
 	public int getLowestY() {
@@ -110,8 +88,8 @@ public class SchematicData {
 	
 	@Override
 	public boolean equals(Object o) {
-		if(!(o instanceof SchematicData)) return false;
-		SchematicData d = (SchematicData)o;
+		if(!(o instanceof LegacySchematicData)) return false;
+		LegacySchematicData d = (LegacySchematicData)o;
 		return d.getArena().getName().equals(arena.getName()) && d.getSchematic().getName().equals(getSchematic().getName());
 	}
 	

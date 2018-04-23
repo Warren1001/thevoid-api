@@ -1,8 +1,8 @@
 package com.kabryxis.thevoid.api.round;
 
 import com.kabryxis.thevoid.api.arena.Arena;
+import com.kabryxis.thevoid.api.arena.schematic.IBaseSchematic;
 import com.kabryxis.thevoid.api.game.Game;
-import com.kabryxis.thevoid.api.schematic.BaseSchematic;
 
 public interface RoundInfo {
 	
@@ -10,7 +10,7 @@ public interface RoundInfo {
 	
 	Arena getArena();
 	
-	BaseSchematic getSchematic();
+	IBaseSchematic getSchematic();
 	
 	void load(Game game);
 	

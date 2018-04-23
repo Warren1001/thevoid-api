@@ -4,6 +4,7 @@ import com.kabryxis.thevoid.api.round.RoundInfo;
 import org.bukkit.event.Event;
 import org.bukkit.plugin.Plugin;
 
+import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
@@ -45,6 +46,12 @@ public interface Game {
 	
 	void removeGamer(Gamer gamer);
 	
-	void died(Gamer gamer);
+	Collection<Gamer> getGamers();
+	
+	Collection<Gamer> getAliveGamers();
+	
+	boolean kill(Gamer gamer);
+	
+	void revive(Gamer gamer);
 	
 }

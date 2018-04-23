@@ -1,4 +1,4 @@
-package com.kabryxis.thevoid.api.schematic;
+package com.kabryxis.thevoid.api.arena.schematic.util;
 
 import org.bukkit.Material;
 import org.bukkit.block.Block;

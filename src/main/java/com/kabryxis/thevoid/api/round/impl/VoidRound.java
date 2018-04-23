@@ -1,6 +1,8 @@
-package com.kabryxis.thevoid.api.round;
+package com.kabryxis.thevoid.api.round.impl;
 
 import com.kabryxis.kabutils.data.file.yaml.Config;
+import com.kabryxis.thevoid.api.round.Round;
+import org.bukkit.GameMode;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
@@ -11,7 +13,7 @@ import java.util.List;
 public abstract class VoidRound implements Round {
 	
 	public final static int DEFAULT_roundLength = 30;
-	public final static List<String> DEFAULT_worldNames = Collections.unmodifiableList(Collections.singletonList("world"));
+	public final static List<String> DEFAULT_worldNames = Collections.unmodifiableList(Arrays.asList("void_overworld", "void_nether", "void_end"));
 	public final static List<String> DEFAULT_schematics = Collections.unmodifiableList(Arrays.asList("rainbow", "halfsphere"));
 	public final static int DEFAULT_weight = 100;
 	
@@ -26,10 +28,12 @@ public abstract class VoidRound implements Round {
 	protected int roundLength;
 	protected int startingPoints;
 	protected int weight;
+	protected GameMode gameMode;
 	
-	public VoidRound(String name, int startingPoints) {
+	public VoidRound(String name, int startingPoints, GameMode gameMode) {
 		this.name = name;
 		this.startingPoints = startingPoints;
+		this.gameMode = gameMode;
 		this.config = new Config(directory + name + ".yml");
 		if(!config.exists()) {
 			generateDefaults();
@@ -47,6 +51,14 @@ public abstract class VoidRound implements Round {
 				this.weight = config.get("weight", Integer.class);
 			});
 		}
+	}
+	
+	public VoidRound(String name, int startingPoints) {
+		this(name, startingPoints, GameMode.ADVENTURE);
+	}
+	
+	public VoidRound(String name) {
+		this(name, 1);
 	}
 	
 	public void generateDefaults() {
@@ -84,6 +96,11 @@ public abstract class VoidRound implements Round {
 	@Override
 	public int getStartingPoints() {
 		return startingPoints;
+	}
+	
+	@Override
+	public GameMode getGameMode() {
+		return gameMode;
 	}
 	
 	@Override

@@ -1,18 +1,20 @@
-package com.kabryxis.thevoid.api.arena;
+package com.kabryxis.thevoid.api.arena.schematic.impl;
 
 import com.kabryxis.kabutils.spigot.concurrent.BukkitThreads;
 import com.kabryxis.kabutils.spigot.world.ChunkLoader;
+import com.kabryxis.thevoid.api.arena.impl.LegacyArena;
 import com.kabryxis.thevoid.api.arena.object.ArenaDataObject;
-import com.kabryxis.thevoid.api.schematic.BaseSchematic;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
-public class BaseSchematicData extends SchematicData {
+public class LegacyBaseSchematicData extends LegacySchematicData {
 	
 	private final Map<Class<? extends ArenaDataObject>, ArenaDataObject> dataObjects = new HashMap<>();
 	
@@ -20,14 +22,20 @@ public class BaseSchematicData extends SchematicData {
 	private int lx, ly, lz;
 	private int mx, mz;
 	
-	public BaseSchematicData(BaseSchematic schematic, Arena arena) {
+	public LegacyBaseSchematicData(LegacyBaseSchematic schematic, LegacyArena arena) {
 		super(schematic, arena);
-		arena.getRegistry().handle(this);
+		//arena.getRegistry().handle(this);
 	}
 	
 	@Override
-	public BaseSchematic getSchematic() {
-		return (BaseSchematic)super.getSchematic();
+	public LegacyBaseSchematic getSchematic() {
+		return (LegacyBaseSchematic)super.getSchematic();
+	}
+	
+	@Override
+	public void loadSchematic() {
+		super.loadSchematic();
+		preloadChunks();
 	}
 	
 	public boolean isOdd() {
@@ -52,16 +60,28 @@ public class BaseSchematicData extends SchematicData {
 	
 	public void preloadChunks() {
 		int lcx = lx >> 4, lcz = lz >> 4, mcx = mx >> 4, mcz = mz >> 4;
-		Arena arena = getArena();
+		Set<Chunk> chunkSet = new HashSet<>();
+		LegacyArena arena = getArena();
 		World world = arena.getWorld();
+		int radius = 1;
 		BukkitThreads.sync(() -> {
-			for(int cx = lcx; cx <= mcx; cx++) {
-				for(int cz = lcz; cz <= mcz; cz++) {
-					Chunk chunk = world.getChunkAt(cx, cz);
-					ChunkLoader.keepInMemory(arena, chunk);
-					if(!chunk.isLoaded()) chunk.load();
+			Chunk baseChunk = arena.getLocation().getChunk();
+			chunkSet.add(baseChunk);
+			int baseChunkX = baseChunk.getX(), baseChunkZ = baseChunk.getZ();
+			for(int x = -radius; x <= radius; x++) {
+				for(int z = -radius; z <= radius; z++) {
+					chunkSet.add(world.getChunkAt(baseChunkX + x, baseChunkZ + z));
 				}
 			}
+			for(int cx = lcx; cx <= mcx; cx++) {
+				for(int cz = lcz; cz <= mcz; cz++) {
+					chunkSet.add(world.getChunkAt(cx, cz));
+				}
+			}
+			chunkSet.forEach(chunk -> {
+				ChunkLoader.keepInMemory(arena, chunk);
+				if(!chunk.isLoaded()) chunk.load();
+			});
 		});
 	}
 	
@@ -84,8 +104,8 @@ public class BaseSchematicData extends SchematicData {
 	
 	@Override
 	public boolean equals(Object o) {
-		if(!(o instanceof BaseSchematicData)) return false;
-		BaseSchematicData d = (BaseSchematicData)o;
+		if(!(o instanceof LegacyBaseSchematicData)) return false;
+		LegacyBaseSchematicData d = (LegacyBaseSchematicData)o;
 		return d.getArena().getName().equals(getArena().getName()) && d.getSchematic().getName().equals(getSchematic().getName());
 	}
 	

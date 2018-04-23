@@ -1,7 +1,7 @@
 package com.kabryxis.thevoid.api.arena.object;
 
 import com.kabryxis.thevoid.api.arena.ArenaEntry;
-import com.kabryxis.thevoid.api.schematic.SchematicEntry;
+import com.kabryxis.thevoid.api.arena.schematic.util.SchematicEntry;
 
 public interface ArenaDataObject {
 	
