@@ -1,10 +1,11 @@
 package com.kabryxis.thevoid.api.arena.schematic.impl;
 
+import com.kabryxis.kabutils.spigot.concurrent.BukkitThreads;
 import com.kabryxis.thevoid.api.arena.Arena;
 import com.kabryxis.thevoid.api.arena.ArenaEntry;
 import com.kabryxis.thevoid.api.arena.impl.VoidArena;
 import com.kabryxis.thevoid.api.arena.schematic.ArenaData;
-import com.kabryxis.thevoid.api.arena.schematic.ISchematic;
+import com.kabryxis.thevoid.api.arena.schematic.Schematic;
 import com.kabryxis.thevoid.api.arena.schematic.util.SchematicWork;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
@@ -18,14 +19,14 @@ import java.util.function.Supplier;
 public class VoidArenaData implements ArenaData {
 	
 	private final VoidArena arena;
-	private final ISchematic schematic;
+	private final Schematic schematic;
 	
 	private Set<ArenaEntry> arenaEntries;
 	
 	private Map<Class<? extends SchematicWork>, SchematicWork> schematicWorks;
 	//private int lowestY;
 	
-	public VoidArenaData(VoidArena arena, ISchematic schematic) {
+	public VoidArenaData(VoidArena arena, Schematic schematic) {
 		this.arena = arena;
 		this.schematic = schematic;
 		if(schematic.hasSchematicWork()) {
@@ -44,14 +45,25 @@ public class VoidArenaData implements ArenaData {
 	}
 	
 	@Override
-	public ISchematic getSchematic() {
+	public Schematic getSchematic() {
 		return schematic;
 	}
 	
 	@Override
 	public void setArenaEntries(Set<ArenaEntry> arenaEntries) {
 		this.arenaEntries = arenaEntries;
-		//lowestY = Integer.MAX_VALUE;
+		if(schematicWorks != null) {
+			BukkitThreads.sync(() -> {
+				for(ArenaEntry entry : arenaEntries) {
+					Vector pos = entry.getPos();
+					int x = pos.getBlockX(), y = pos.getBlockY(), z = pos.getBlockZ();
+					int type = entry.getBlock().getId();
+					int data = entry.getBlock().getData();
+					schematicWorks.values().forEach(extra -> extra.doExtra(arena.getWorld().getBlockAt(x, y, z), Material.getMaterial(type), data));
+				}
+			});
+		}
+		/*lowestY = Integer.MAX_VALUE;
 		for(ArenaEntry entry : arenaEntries) {
 			Vector pos = entry.getPos();
 			int x = pos.getBlockX(), y = pos.getBlockY(), z = pos.getBlockZ();
@@ -59,7 +71,7 @@ public class VoidArenaData implements ArenaData {
 			int data = entry.getBlock().getData();
 			//if(y < lowestY) lowestY = y;
 			if(schematicWorks != null) schematicWorks.values().forEach(extra -> extra.doExtra(arena.getWorld().getBlockAt(x, y, z), Material.getMaterial(type), data));
-		}
+		}*/
 	}
 	
 	@Override

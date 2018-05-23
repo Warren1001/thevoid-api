@@ -1,5 +1,6 @@
 package com.kabryxis.thevoid.api.arena.schematic.util;
 
+import com.kabryxis.thevoid.api.arena.ArenaEntry;
 import org.bukkit.Material;
 
 public class SchematicEntry {
@@ -8,27 +9,12 @@ public class SchematicEntry {
 	private Material type;
 	private int data; // TODO 1.13 update
 	
-	private String metadata;
-	
-	public SchematicEntry(int x, int y, int z, Material type, int data, String metadata) {
-		this(x, y, z, type, data);
-		this.metadata = metadata;
-	}
-	
 	public SchematicEntry(int x, int y, int z, Material type, int data) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
 		this.type = type;
 		this.data = data;
-	}
-	
-	public SchematicEntry(int x, int y, int z, Material type) {
-		this(x, y, z, type, 0);
-	}
-	
-	public SchematicEntry(int x, int y, int z) {
-		this(x, y, z, Material.AIR);
 	}
 	
 	public int getX() {
@@ -51,8 +37,8 @@ public class SchematicEntry {
 		return data;
 	}
 	
-	public String getMetadata() {
-		return metadata;
+	public ArenaEntry toArenaEntry(int offsetX, int offsetY, int offsetZ) {
+		return new ArenaEntry(x + offsetX, y + offsetY, z + offsetZ, type.getId(), data);
 	}
 	
 }

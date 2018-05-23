@@ -3,15 +3,14 @@ package com.kabryxis.thevoid.api.arena.schematic;
 import com.kabryxis.thevoid.api.arena.schematic.util.SchematicEntry;
 import com.kabryxis.thevoid.api.arena.schematic.util.SchematicWork;
 
-import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
-public interface ISchematic {
+public interface Schematic {
 	
 	String getName();
 	
-	List<SchematicEntry> getSchematicEntries();
+	Set<SchematicEntry> getSchematicEntries();
 	
 	double getSizeX();
 	

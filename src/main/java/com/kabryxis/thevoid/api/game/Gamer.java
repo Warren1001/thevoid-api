@@ -4,8 +4,9 @@ import com.kabryxis.kabutils.spigot.version.WrappableCache;
 import com.kabryxis.kabutils.spigot.version.wrapper.entity.player.WrappedEntityPlayer;
 import com.kabryxis.kabutils.spigot.version.wrapper.packet.WrappedPacket;
 import com.kabryxis.kabutils.spigot.version.wrapper.packet.out.chat.WrappedPacketPlayOutChat;
-import com.kabryxis.thevoid.api.round.Round;
 import com.kabryxis.thevoid.api.arena.schematic.util.BlockSelection;
+import com.kabryxis.thevoid.api.arena.schematic.util.SchematicCreator;
+import com.kabryxis.thevoid.api.round.Round;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -47,6 +48,7 @@ public class Gamer {
 	
 	private boolean inBuilderMode = false;
 	private BlockSelection selection = null;
+	private SchematicCreator creator = new SchematicCreator(this);
 	
 	public Gamer(UUID uuid) {
 		this.uuid = uuid;
@@ -112,6 +114,10 @@ public class Gamer {
 	
 	public BlockSelection getSelection() {
 		return selection;
+	}
+	
+	public SchematicCreator getCreator() {
+		return creator;
 	}
 	
 	public void reset() {

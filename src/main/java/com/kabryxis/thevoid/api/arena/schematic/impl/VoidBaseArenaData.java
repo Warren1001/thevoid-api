@@ -3,32 +3,86 @@ package com.kabryxis.thevoid.api.arena.schematic.impl;
 import com.kabryxis.kabutils.spigot.concurrent.BukkitThreads;
 import com.kabryxis.kabutils.spigot.world.ChunkLoader;
 import com.kabryxis.thevoid.api.arena.Arena;
+import com.kabryxis.thevoid.api.arena.ArenaEntry;
 import com.kabryxis.thevoid.api.arena.impl.VoidArena;
 import com.kabryxis.thevoid.api.arena.object.ArenaDataObject;
 import com.kabryxis.thevoid.api.arena.schematic.BaseArenaData;
-import com.kabryxis.thevoid.api.arena.schematic.IBaseSchematic;
+import com.kabryxis.thevoid.api.arena.schematic.BaseSchematic;
+import com.kabryxis.thevoid.api.arena.schematic.util.SchematicEntry;
 import org.bukkit.Chunk;
+import org.bukkit.Location;
 import org.bukkit.World;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 
 public class VoidBaseArenaData extends VoidArenaData implements BaseArenaData {
 	
+	private Location center;
 	private Map<Class<? extends ArenaDataObject>, ArenaDataObject> dataObjects;
-	private int lx, ly, lz, mx, mz;
+	private int lx, ly, lz, mx, my, mz;
 	
-	public VoidBaseArenaData(VoidArena arena, IBaseSchematic schematic) {
+	public VoidBaseArenaData(VoidArena arena, BaseSchematic schematic) {
 		super(arena, schematic);
+		center = arena.getLocation().clone().add(0, 0.75, 0);
+		if(schematic.isOdd()) center.add(0.5, 0, 0.5);
+		Set<ArenaEntry> arenaEntries;
+		int lx, ly, lz, mx, my, mz;
+		if(schematic instanceof VoidEmptySchematic) {
+			arenaEntries = Collections.emptySet();
+			Location loc = arena.getLocation();
+			int x = loc.getBlockX(), z = loc.getBlockZ();
+			lx = x - 32;
+			ly = loc.getBlockY();
+			lz = z - 32;
+			mx = x + 32;
+			my = 0;
+			mz = z + 32;
+		}
+		else {
+			arena.getRegistry().handle(this);
+			Set<SchematicEntry> schematicEntries = schematic.getSchematicEntries();
+			arenaEntries = new HashSet<>(schematicEntries.size());
+			Location trueStart = arena.getLocation().clone().subtract(schematic.getCenterX(), schematic.getCenterY(), schematic.getCenterZ());
+			lx = Integer.MAX_VALUE;
+			ly = Integer.MAX_VALUE;
+			lz = Integer.MAX_VALUE;
+			mx = Integer.MIN_VALUE;
+			my = Integer.MIN_VALUE;
+			mz = Integer.MIN_VALUE;
+			for(SchematicEntry schematicEntry : schematicEntries) {
+				ArenaEntry arenaEntry = schematicEntry.toArenaEntry(trueStart.getBlockX(), trueStart.getBlockY(), trueStart.getBlockZ());
+				com.sk89q.worldedit.Vector pos = arenaEntry.getPos();
+				int x = pos.getBlockX(), y = pos.getBlockY(), z = pos.getBlockZ();
+				if(x < lx) lx = x;
+				if(x > mx) mx = x;
+				if(y < ly) ly = y;
+				if(y > my) my = y;
+				if(z < lz) lz = z;
+				if(z > mz) mz = z;
+				arenaEntries.add(arenaEntry);
+				forEachDataObject(object -> object.next(schematicEntry, arenaEntry));
+			}
+		}
+		setArenaEntries(arenaEntries);
+		setMinsAndMaxs(lx, ly, lz, mx, my, mz);
+	}
+	
+	/*public VoidBaseArenaData(VoidArena arena, BaseSchematic schematic) {
+		super(arena, schematic);
+		center = arena.getLocation().clone().add(0, 0.75, 0);
+		if(schematic.isOdd()) center.add(0.5, 0, 0.5);
 		arena.getRegistry().handle(this);
+	}*/
+	
+	@Override
+	public BaseSchematic getSchematic() {
+		return (BaseSchematic)super.getSchematic();
 	}
 	
 	@Override
-	public IBaseSchematic getSchematic() {
-		return (IBaseSchematic)super.getSchematic();
+	public Location getCenter() {
+		return center;
 	}
 	
 	@Override
@@ -43,16 +97,17 @@ public class VoidBaseArenaData extends VoidArenaData implements BaseArenaData {
 	}*/
 	
 	@Override
-	public int getRadius() {
+	public double getRadius() {
 		return getSchematic().getRadius();
 	}
 	
 	@Override
-	public void setMinsAndMaxs(int lx, int ly, int lz, int mx, int mz) {
+	public void setMinsAndMaxs(int lx, int ly, int lz, int mx, int my, int mz) {
 		this.lx = lx;
 		this.ly = ly;
 		this.lz = lz;
 		this.mx = mx;
+		this.my = my;
 		this.mz = mz;
 	}
 	
@@ -94,7 +149,7 @@ public class VoidBaseArenaData extends VoidArenaData implements BaseArenaData {
 		Set<Chunk> chunkSet = new HashSet<>();
 		Arena arena = getArena();
 		World world = arena.getWorld();
-		int radius = 1;
+		int radius = 3;
 		BukkitThreads.sync(() -> {
 			Chunk baseChunk = arena.getLocation().getChunk();
 			chunkSet.add(baseChunk);

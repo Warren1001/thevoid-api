@@ -1,32 +1,33 @@
 package com.kabryxis.thevoid.api.arena.schematic.util;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class BlockSelection {
 	
-	private final List<Block> selectedBlocks = new ArrayList<>();
+	private final Set<Block> selectedBlocks = new HashSet<>();
 	
 	private Player player;
 	private int leftX, leftY, leftZ;
 	private int rightX, rightY, rightZ;
 	
-	private int lowestX = Integer.MAX_VALUE, lowestY = 256, highestY = 0, lowestZ = Integer.MAX_VALUE;
+	private int lowestX, highestX, lowestY, highestY, lowestZ, highestZ;
 	
 	public BlockSelection(Player player) {
 		this.player = player;
+		reset();
 	}
 	
 	public Player getPlayer() {
 		return player;
 	}
 	
-	public List<Block> getBlocks() {
+	public Set<Block> getBlocks() {
 		return selectedBlocks;
 	}
 	
@@ -46,6 +47,10 @@ public class BlockSelection {
 		return lowestX;
 	}
 	
+	public int getHighestX() {
+		return highestX;
+	}
+	
 	public int getLowestY() {
 		return lowestY;
 	}
@@ -56,6 +61,10 @@ public class BlockSelection {
 	
 	public int getLowestZ() {
 		return lowestZ;
+	}
+	
+	public int getHighestZ() {
+		return highestZ;
 	}
 	
 	public void addSelection(boolean air) {
@@ -100,21 +109,25 @@ public class BlockSelection {
 	private void calculateMinMax(Block block) {
 		int x = block.getX(), y = block.getY(), z = block.getZ();
 		if(x < lowestX) lowestX = x;
+		else if(x > highestX) highestX = x;
 		if(y < lowestY) lowestY = y;
-		if(y > highestY) highestY = y;
+		else if(y > highestY) highestY = y;
 		if(z < lowestZ) lowestZ = z;
+		else if(z > highestZ) highestZ = z;
 	}
 	
-	private void recalculateMinMax() {
+	public void recalculateMinMax() {
 		reset();
 		selectedBlocks.forEach(this::calculateMinMax);
 	}
 	
 	private void reset() {
 		lowestX = Integer.MAX_VALUE;
+		highestX = Integer.MIN_VALUE;
 		lowestY = 256;
 		highestY = 0;
 		lowestZ = Integer.MAX_VALUE;
+		highestZ = Integer.MIN_VALUE;
 	}
 	
 	public void extreme() {

@@ -8,7 +8,7 @@ import java.util.Set;
 
 public interface ArenaData {
 	
-	ISchematic getSchematic();
+	Schematic getSchematic();
 	
 	Arena getArena();
 	

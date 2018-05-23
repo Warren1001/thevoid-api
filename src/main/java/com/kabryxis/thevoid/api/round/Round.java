@@ -4,6 +4,7 @@ import com.kabryxis.kabutils.random.Weighted;
 import com.kabryxis.kabutils.spigot.world.Teleport;
 import com.kabryxis.kabutils.time.TimeLeft;
 import com.kabryxis.thevoid.api.arena.Arena;
+import com.kabryxis.thevoid.api.arena.schematic.BaseArenaData;
 import com.kabryxis.thevoid.api.game.Game;
 import com.kabryxis.thevoid.api.game.Gamer;
 import org.bukkit.GameMode;
@@ -40,8 +41,9 @@ public interface Round extends Weighted {
 		gamer.teleport(20);
 	}
 	
-	default Location[] getSpawns(Game game, int radius) {
-		return Teleport.getEquidistantPoints(game.getCurrentRoundInfo().getArena().getLocation().clone().add(0, 0.75, 0), game.getGamers().size(), radius);
+	default Location[] getSpawns(Game game) {
+		BaseArenaData baseArenaData = game.getCurrentRoundInfo().getArena().getCurrentArenaData();
+		return Teleport.getEquidistantPoints(baseArenaData.getCenter(), game.getGamers().size(), baseArenaData.getRadius());
 	}
 	
 	default Collection<Gamer> getRoundWinners(Game game) {

@@ -1,7 +1,7 @@
 package com.kabryxis.thevoid.api.round;
 
 import com.kabryxis.thevoid.api.arena.Arena;
-import com.kabryxis.thevoid.api.arena.schematic.IBaseSchematic;
+import com.kabryxis.thevoid.api.arena.schematic.BaseSchematic;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,10 +16,10 @@ public interface RoundInfoRegistry {
 		}
 	}
 	
-	void registerSchematic(IBaseSchematic schematic);
+	void registerSchematic(BaseSchematic schematic);
 	
-	default void registerSchematics(IBaseSchematic... schematics) {
-		for(IBaseSchematic schematic : schematics) {
+	default void registerSchematics(BaseSchematic... schematics) {
+		for(BaseSchematic schematic : schematics) {
 			registerSchematic(schematic);
 		}
 	}

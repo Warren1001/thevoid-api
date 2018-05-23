@@ -1,14 +1,14 @@
 package com.kabryxis.thevoid.api.arena.object;
 
 import com.kabryxis.thevoid.api.arena.Arena;
-import com.kabryxis.thevoid.api.arena.schematic.IBaseSchematic;
+import com.kabryxis.thevoid.api.arena.schematic.BaseSchematic;
 
 import java.util.Set;
 import java.util.function.Consumer;
 
 public interface ArenaDataObjectable {
 	
-	IBaseSchematic getSchematic();
+	BaseSchematic getSchematic();
 	
 	Arena getArena();
 	
