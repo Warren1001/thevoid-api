@@ -1,5 +1,6 @@
 package com.kabryxis.thevoid.api.arena;
 
+import com.kabryxis.kabutils.random.PredicateWeighted;
 import com.kabryxis.thevoid.api.arena.object.ArenaDataObjectRegistry;
 import com.kabryxis.thevoid.api.arena.schematic.ArenaData;
 import com.kabryxis.thevoid.api.arena.schematic.BaseArenaData;
@@ -11,7 +12,7 @@ import org.bukkit.entity.Entity;
 
 import java.util.List;
 
-public interface Arena {
+public interface Arena extends PredicateWeighted<Object> {
 	
 	String getName();
 	
@@ -19,10 +20,6 @@ public interface Arena {
 	
 	default World getWorld() {
 		return getLocation().getWorld();
-	}
-	
-	default String getWorldName() {
-		return getWorld().getName();
 	}
 	
 	ArenaDataObjectRegistry getRegistry();

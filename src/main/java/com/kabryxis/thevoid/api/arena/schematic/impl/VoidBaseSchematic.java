@@ -1,6 +1,5 @@
 package com.kabryxis.thevoid.api.arena.schematic.impl;
 
-import com.kabryxis.kabutils.random.Weighted;
 import com.kabryxis.kabutils.spigot.data.Config;
 import com.kabryxis.thevoid.api.arena.schematic.BaseSchematic;
 import com.kabryxis.thevoid.api.arena.schematic.util.SchematicEntry;
@@ -8,13 +7,13 @@ import com.kabryxis.thevoid.api.arena.schematic.util.SchematicEntry;
 import java.io.File;
 import java.util.Set;
 
-public class VoidBaseSchematic extends VoidSchematic implements BaseSchematic, Weighted {
+public class VoidBaseSchematic extends VoidSchematic implements BaseSchematic {
 	
 	private final Config data;
 	
 	public VoidBaseSchematic(File file) {
 		super(file);
-		this.data = Config.get(new File(VoidSchematic.PATH + getName() + "-data.yml"));
+		this.data = new Config(new File(VoidSchematic.PATH + getName() + "-data.yml"));
 		data.load();
 	}
 	

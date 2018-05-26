@@ -6,7 +6,6 @@ import com.kabryxis.kabutils.spigot.version.wrapper.packet.WrappedPacket;
 import com.kabryxis.kabutils.spigot.version.wrapper.packet.out.chat.WrappedPacketPlayOutChat;
 import com.kabryxis.thevoid.api.arena.schematic.util.BlockSelection;
 import com.kabryxis.thevoid.api.arena.schematic.util.SchematicCreator;
-import com.kabryxis.thevoid.api.round.Round;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -230,14 +229,14 @@ public class Gamer {
 		player.setGameMode(gameMode);
 	}
 	
-	public void nextRound(Round round, Location spawn) {
+	/*public void nextRound(Round round, Location spawn) {
 		setRoundPoints(0, true);
 		setGameMode(round.getGameMode());
 		player.setFlying(false);
 		setInventory(round.getInventory(), round.getArmor());
 		setRoundPoints(round.getStartingPoints(), false);
 		teleport(spawn);
-	}
+	}*/
 	
 	public boolean kill() {
 		setAlive(false);

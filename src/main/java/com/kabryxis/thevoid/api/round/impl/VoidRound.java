@@ -1,71 +1,28 @@
 package com.kabryxis.thevoid.api.round.impl;
 
-import com.kabryxis.kabutils.data.file.yaml.Config;
+import com.kabryxis.kabutils.spigot.data.Config;
+import com.kabryxis.kabutils.time.TimeLeft;
+import com.kabryxis.thevoid.api.arena.Arena;
+import com.kabryxis.thevoid.api.arena.schematic.Schematic;
+import com.kabryxis.thevoid.api.game.Game;
+import com.kabryxis.thevoid.api.game.Gamer;
+import com.kabryxis.thevoid.api.round.DeathReason;
 import com.kabryxis.thevoid.api.round.Round;
-import org.bukkit.GameMode;
-import org.bukkit.inventory.ItemStack;
+import com.kabryxis.thevoid.api.round.RoundManager;
+import org.bukkit.event.Event;
 
-import java.io.File;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
-public abstract class VoidRound implements Round {
+public class VoidRound implements Round {
 	
-	public final static int DEFAULT_roundLength = 30;
-	public final static List<String> DEFAULT_worldNames = Collections.unmodifiableList(Arrays.asList("void_overworld", "void_nether", "void_end"));
-	public final static List<String> DEFAULT_schematics = Collections.unmodifiableList(Arrays.asList("rainbow", "halfsphere"));
-	public final static int DEFAULT_weight = 100;
+	private final RoundManager roundManager;
+	private final String name;
+	private final Config data;
 	
-	private final static String directory = "plugins" + File.separator + "TheVoid" + File.separator + "rounds" + File.separator;
-	
-	protected final String name;
-	protected final Config config;
-	protected final ItemStack[] inventory = new ItemStack[36], armor = new ItemStack[4];
-	
-	protected List<String> worldNames;
-	protected List<String> schematics;
-	protected int roundLength;
-	protected int startingPoints;
-	protected int weight;
-	protected GameMode gameMode;
-	
-	public VoidRound(String name, int startingPoints, GameMode gameMode) {
+	public VoidRound(RoundManager roundManager, String name) {
+		this.roundManager = roundManager;
 		this.name = name;
-		this.startingPoints = startingPoints;
-		this.gameMode = gameMode;
-		this.config = new Config(directory + name + ".yml");
-		if(!config.exists()) {
-			generateDefaults();
-			this.roundLength = config.get("round-length", Integer.class);
-			this.worldNames = config.getList("world-names", String.class);
-			this.schematics = config.getList("schematics", String.class);
-			this.weight = config.get("weight", Integer.class);
-			config.save();
-		}
-		else {
-			config.load(config -> {
-				this.roundLength = config.get("round-length", Integer.class);
-				this.worldNames = config.getList("world-names", String.class);
-				this.schematics = config.getList("schematics", String.class);
-				this.weight = config.get("weight", Integer.class);
-			});
-		}
-	}
-	
-	public VoidRound(String name, int startingPoints) {
-		this(name, startingPoints, GameMode.ADVENTURE);
-	}
-	
-	public VoidRound(String name) {
-		this(name, 1);
-	}
-	
-	public void generateDefaults() {
-		config.set("round-length", VoidRound.DEFAULT_roundLength);
-		config.set("world-names", VoidRound.DEFAULT_worldNames);
-		config.set("schematics", VoidRound.DEFAULT_schematics);
-		config.set("weight", VoidRound.DEFAULT_weight);
+		this.data = roundManager.getData(this);
 	}
 	
 	@Override
@@ -73,44 +30,88 @@ public abstract class VoidRound implements Round {
 		return name;
 	}
 	
+	public Config getData() {
+		return data;
+	}
+	
+	public void setEnabled(boolean enabled) {
+		data.set("enabled", enabled);
+	}
+	
+	public boolean isEnabled() {
+		return data.getBoolean("enabled");
+	}
+	
 	@Override
 	public int getRoundLength() {
-		return roundLength;
-	}
-	
-	@Override
-	public List<String> getWorldNames() {
-		return worldNames;
-	}
-	
-	@Override
-	public List<String> getSchematics() {
-		return schematics;
+		return data.getInt("round-length");
 	}
 	
 	@Override
 	public int getWeight() {
-		return weight;
+		return data.getInt("weight");
 	}
 	
 	@Override
-	public int getStartingPoints() {
-		return startingPoints;
+	public boolean test(Object obj) {
+		if(obj instanceof VoidRound) return ((VoidRound)obj).isEnabled();
+		if(obj instanceof Arena) return data.getStringList("worlds").contains(((Arena)obj).getWorld().getName()); // TODO consider replacing with arena names instead, or possibly find a way to support both
+		if(obj instanceof Schematic) return data.getStringList("schematics").contains(((Schematic)obj).getName());
+		return false;
 	}
 	
 	@Override
-	public GameMode getGameMode() {
-		return gameMode;
+	public void load(Game game) {}
+	
+	@Override
+	public void start(Game game) {}
+	
+	@Override
+	public void tick(Game game, int time, TimeLeft timeLeft) {}
+	
+	@Override
+	public void end(Game game) {}
+	
+	@Override
+	public void event(Game game, Event event) {}
+	
+	@Override
+	public void kill(Gamer gamer, DeathReason reason) { // TODO most likely needs to be modified
+		gamer.decrementRoundPoints(false);
+		gamer.kill();
+		gamer.teleport(20);
 	}
 	
 	@Override
-	public ItemStack[] getInventory() {
-		return inventory;
+	public Collection<Gamer> getRoundWinners(Game game) { // TODO probably needs to be modified
+		Collection<Gamer> gamers = game.getGamers();
+		Set<Gamer> winners = new HashSet<>();
+		int mostPoints = 0;
+		for(Gamer gamer : gamers) {
+			int points = gamer.getRoundPoints();
+			if(points > mostPoints) mostPoints = points;
+		}
+		if(mostPoints > 0) {
+			for(Gamer gamer : gamers) {
+				if(gamer.getRoundPoints() == mostPoints) winners.add(gamer);
+			}
+		}
+		return winners;
 	}
 	
 	@Override
-	public ItemStack[] getArmor() {
-		return armor;
+	public void customTimer() {}
+	
+	public void setCustomDefaults(Config data) {}
+	
+	public Map<String, Class<?>> getRequiredObjects() {
+		return Collections.emptyMap();
 	}
+	
+	/*@Override
+	public Location[] getSpawns(Game game) {
+		BaseArenaData baseArenaData = game.getCurrentRoundInfo().getArena().getCurrentArenaData();
+		return Teleport.getEquidistantPoints(baseArenaData.getCenter(), game.getGamers().size(), baseArenaData.getRadius());
+	}*/
 	
 }

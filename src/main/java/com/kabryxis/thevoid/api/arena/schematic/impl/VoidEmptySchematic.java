@@ -81,4 +81,9 @@ public class VoidEmptySchematic implements BaseSchematic {
 		return 0;
 	}
 	
+	@Override
+	public int getWeight() {
+		return 100;
+	}
+	
 }

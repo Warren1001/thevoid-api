@@ -2,7 +2,6 @@ package com.kabryxis.thevoid.api.arena.impl;
 
 import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.util.EditSessionBuilder;
-import com.kabryxis.kabutils.random.Weighted;
 import com.kabryxis.kabutils.spigot.data.Config;
 import com.kabryxis.kabutils.spigot.world.ChunkLoader;
 import com.kabryxis.thevoid.api.arena.Arena;
@@ -24,7 +23,7 @@ import java.io.File;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class VoidArena implements Arena, Weighted {
+public class VoidArena implements Arena {
 	
 	public final static String PATH = "plugins" + File.separator + "TheVoid" + File.separator + "arenas" + File.separator;
 	
@@ -46,7 +45,7 @@ public class VoidArena implements Arena, Weighted {
 		this.dataObjectRegistry = dataObjectRegistry;
 		this.data = data;
 		this.location = new Location(Bukkit.getWorld(data.getString("world")), data.getDouble("x"), data.getDouble("y"), data.getDouble("z"));
-		this.editSession = new EditSessionBuilder(FaweAPI.getWorld(getWorldName())).fastmode(true).build();
+		this.editSession = new EditSessionBuilder(FaweAPI.getWorld(getWorld().getName())).fastmode(true).build();
 		this.weight = data.getInt("weight");
 	}
 	
@@ -70,6 +69,11 @@ public class VoidArena implements Arena, Weighted {
 	}
 	
 	@Override
+	public boolean test(Object obj) {
+		return false;
+	}
+	
+	@Override
 	public void queueSchematics(List<? extends BaseSchematic> list) {
 		for(BaseSchematic baseSchematic : list) {
 			schematics.add(getArenaData(baseSchematic));
@@ -78,30 +82,6 @@ public class VoidArena implements Arena, Weighted {
 	
 	private BaseArenaData getArenaData(BaseSchematic schematic) {
 		return (BaseArenaData)arenaDatas.computeIfAbsent(schematic, s -> new VoidBaseArenaData(this, schematic));
-		/*if(arenaDatas.containsKey(schematic)) return (BaseArenaData)arenaDatas.get(schematic);
-		VoidBaseArenaData arenaData = new VoidBaseArenaData(this, schematic);
-		Set<SchematicEntry> schematicEntries = schematic.getSchematicEntries();
-		Set<ArenaEntry> arenaEntries = new HashSet<>(schematicEntries.size());
-		Location trueStart = location.clone().subtract(schematic.getCenterX(), schematic.getCenterY(), schematic.getCenterZ());
-		int lx = Integer.MAX_VALUE, ly = Integer.MAX_VALUE, lz = Integer.MAX_VALUE;
-		int mx = Integer.MIN_VALUE, my = Integer.MIN_VALUE, mz = Integer.MIN_VALUE;
-		for(SchematicEntry schematicEntry : schematicEntries) {
-			ArenaEntry arenaEntry = schematicEntry.toArenaEntry(trueStart.getBlockX(), trueStart.getBlockY(), trueStart.getBlockZ());
-			com.sk89q.worldedit.Vector pos = arenaEntry.getPos();
-			int x = pos.getBlockX(), y = pos.getBlockY(), z = pos.getBlockZ();
-			if(x < lx) lx = x;
-			if(x > mx) mx = x;
-			if(y < ly) ly = y;
-			if(y > my) my = y;
-			if(z < lz) lz = z;
-			if(z > mz) mz = z;
-			arenaEntries.add(arenaEntry);
-			arenaData.forEachDataObject(object -> object.next(schematicEntry, arenaEntry));
-		}
-		arenaData.setArenaEntries(arenaEntries);
-		arenaData.setMinsAndMaxs(lx, ly, lz, mx, my, mz);
-		arenaDatas.put(schematic, arenaData);
-		return arenaData;*/
 	}
 	
 	@Override

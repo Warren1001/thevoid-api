@@ -58,7 +58,7 @@ public class SchematicCreator {
 	public SchematicCreator useData(boolean useData) {
 		if(!this.useData && useData) {
 			owner.message("using data");
-			data = Config.get(new File(VoidSchematic.PATH + name + "-data.yml"));
+			data = new Config(new File(VoidSchematic.PATH + name + "-data.yml"));
 			odd(true);
 			radius(7.5);
 			timeModifier(1.0);

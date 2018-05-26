@@ -5,16 +5,14 @@ import org.bukkit.event.Event;
 import org.bukkit.plugin.Plugin;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Consumer;
-import java.util.logging.Logger;
 
 public interface Game {
 	
 	String getName();
 	
 	Plugin getOwner();
-	
-	Logger getLogger();
 	
 	void threadStart();
 	
@@ -46,7 +44,7 @@ public interface Game {
 	
 	void removeGamer(Gamer gamer);
 	
-	Collection<Gamer> getGamers();
+	List<Gamer> getGamers();
 	
 	Collection<Gamer> getAliveGamers();
 	

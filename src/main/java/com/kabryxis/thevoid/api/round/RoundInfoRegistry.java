@@ -1,33 +1,33 @@
 package com.kabryxis.thevoid.api.round;
 
 import com.kabryxis.thevoid.api.arena.Arena;
-import com.kabryxis.thevoid.api.arena.schematic.BaseSchematic;
+import com.kabryxis.thevoid.api.arena.schematic.Schematic;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public interface RoundInfoRegistry {
+public interface RoundInfoRegistry<A extends Arena, S extends Schematic, R extends Round> {
 	
-	void registerArena(Arena arena);
+	void registerArena(A arena);
 	
-	default void registerArenas(Arena... arenas) {
-		for(Arena arena : arenas) {
+	default void registerArenas(A... arenas) {
+		for(A arena : arenas) {
 			registerArena(arena);
 		}
 	}
 	
-	void registerSchematic(BaseSchematic schematic);
+	void registerSchematic(S schematic);
 	
-	default void registerSchematics(BaseSchematic... schematics) {
-		for(BaseSchematic schematic : schematics) {
+	default void registerSchematics(S... schematics) {
+		for(S schematic : schematics) {
 			registerSchematic(schematic);
 		}
 	}
 	
-	void registerRound(Round round);
+	void registerRound(R round);
 	
-	default void registerRounds(Round... rounds) {
-		for(Round round : rounds) {
+	default void registerRounds(R... rounds) {
+		for(R round : rounds) {
 			registerRound(round);
 		}
 	}
