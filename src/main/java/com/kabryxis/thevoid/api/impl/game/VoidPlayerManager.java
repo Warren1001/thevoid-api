@@ -55,6 +55,18 @@ public class VoidPlayerManager implements PlayerManager {
 	}
 	
 	@Override
+	public void addActivePlayer(GamePlayer gamePlayer) {
+		if(!(gamePlayer instanceof VoidPlayer)) throw new IllegalArgumentException("This VoidPlayerManager instance only accepts VoidPlayer instances");
+		activePlayers.add((VoidPlayer)gamePlayer);
+	}
+	
+	@Override
+	public void removeActivePlayer(GamePlayer gamePlayer) {
+		if(!(gamePlayer instanceof VoidPlayer)) throw new IllegalArgumentException("This VoidPlayerManager instance only accepts VoidPlayer instances");
+		activePlayers.remove(gamePlayer);
+	}
+	
+	@Override
 	public void kill(GamePlayer gamePlayer) {
 		synchronized(alivePlayers) {
 			alivePlayers.remove(gamePlayer);

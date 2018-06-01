@@ -17,6 +17,10 @@ public interface PlayerManager {
 	
 	GamePlayer getPlayer(UUID uuid);
 	
+	void addActivePlayer(GamePlayer gamePlayer);
+	
+	void removeActivePlayer(GamePlayer gamePlayer);
+	
 	void kill(GamePlayer player);
 	
 	List<? extends GamePlayer> getActivePlayers();

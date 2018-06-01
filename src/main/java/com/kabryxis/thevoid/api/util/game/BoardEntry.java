@@ -1,6 +1,6 @@
 package com.kabryxis.thevoid.api.util.game;
 
-import com.kabryxis.thevoid.api.impl.game.VoidPlayer;
+import com.kabryxis.thevoid.api.game.GamePlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.scoreboard.Objective;
@@ -13,41 +13,41 @@ public class BoardEntry {
 	
 	private final Board board;
 	private final Scoreboard scoreboard;
-	private final VoidPlayer voidPlayer;
+	private final GamePlayer gamePlayer;
 	
 	private Objective objective;
 	private Score aliveScore, deadScore;
 	
-	public BoardEntry(Board board, VoidPlayer voidPlayer) {
+	public BoardEntry(Board board, GamePlayer gamePlayer) {
 		this.board = board;
 		this.scoreboard = board.getScoreboard();
-		this.voidPlayer = voidPlayer;
+		this.gamePlayer = gamePlayer;
 	}
 	
 	public void updateObjective() {
 		this.objective = board.getObjective();
-		String name = voidPlayer.getName();
+		String name = gamePlayer.getName();
 		this.aliveScore = objective.getScore(ChatColor.GREEN + name);
 		this.deadScore = objective.getScore(ChatColor.DARK_GRAY + name);
 	}
 	
 	public void updateScore() {
-		if(voidPlayer.isAlive()) {
+		if(gamePlayer.isAlive()) {
 			scoreboard.resetScores(deadScore.getEntry());
-			aliveScore.setScore(voidPlayer.getPoints());
+			aliveScore.setScore(gamePlayer.getPoints());
 		}
 		else {
 			scoreboard.resetScores(aliveScore.getEntry());
-			deadScore.setScore(voidPlayer.getPoints());
+			deadScore.setScore(gamePlayer.getPoints());
 		}
 	}
 	
 	public void showScoreboard() {
-		voidPlayer.getPlayer().setScoreboard(scoreboard);
+		gamePlayer.getPlayer().setScoreboard(scoreboard);
 	}
 	
 	public void hideScoreboard() {
-		voidPlayer.getPlayer().setScoreboard(EMPTY);
+		gamePlayer.getPlayer().setScoreboard(EMPTY);
 	}
 	
 }

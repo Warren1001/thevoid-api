@@ -85,7 +85,7 @@ public class VoidArena implements Arena {
 		if(obj instanceof BaseSchematic) {
 			// TODO
 		}
-		return false;
+		return true;
 	}
 	
 	@Override

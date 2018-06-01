@@ -2,7 +2,7 @@ package com.kabryxis.thevoid.api.util.game;
 
 import com.kabryxis.kabutils.string.IncrementalString;
 import com.kabryxis.thevoid.api.game.Game;
-import com.kabryxis.thevoid.api.impl.game.VoidPlayer;
+import com.kabryxis.thevoid.api.game.GamePlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.scoreboard.DisplaySlot;
@@ -14,7 +14,7 @@ import java.util.Map;
 
 public class Board {
 	
-	private final Map<VoidPlayer, BoardEntry> boardEntries = new HashMap<>();
+	private final Map<GamePlayer, BoardEntry> boardEntries = new HashMap<>();
 	
 	private final Game game;
 	private final IncrementalString roundEntry;
@@ -37,22 +37,21 @@ public class Board {
 		return objective;
 	}
 	
-	public BoardEntry getBoardEntry(VoidPlayer voidPlayer) {
-		return boardEntries.computeIfAbsent(voidPlayer, p -> new BoardEntry(this, p));
+	public BoardEntry getBoardEntry(GamePlayer gamePlayer) {
+		return boardEntries.computeIfAbsent(gamePlayer, p -> new BoardEntry(this, p));
 	}
 	
 	public void reset() {
 		this.objective = board.getObjective("thevoid-points");
-		if(objective != null) objective.unregister();
+		if(objective != null) {
+			boardEntries.values().forEach(BoardEntry::hideScoreboard);
+			objective.unregister();
+		}
 		this.objective = board.registerNewObjective("thevoid-points", "dummy");
 		objective.setDisplayName(ChatColor.BOLD.toString() + ChatColor.GREEN + "TheVoid Test");
 		objective.setDisplaySlot(DisplaySlot.SIDEBAR);
 		objective.getScore(ChatColor.RESET.toString()).setScore(-1);
 		objective.getScore(roundEntry.reset()).setScore(-2);
-		boardEntries.values().forEach(entry -> {
-			entry.updateObjective();
-			entry.updateScore();
-		});
 	}
 	
 	public void nextRound() {
@@ -61,6 +60,10 @@ public class Board {
 	}
 	
 	public void start() {
+		boardEntries.values().forEach(entry -> {
+			entry.updateObjective();
+			entry.updateScore();
+		});
 		boardEntries.values().forEach(BoardEntry::showScoreboard);
 	}
 	
