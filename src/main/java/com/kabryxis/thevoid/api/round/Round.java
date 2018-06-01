@@ -1,14 +1,16 @@
 package com.kabryxis.thevoid.api.round;
 
-import com.kabryxis.kabutils.random.PredicateWeighted;
+import com.kabryxis.kabutils.random.weighted.conditional.ConditionalWeighted;
 import com.kabryxis.kabutils.time.TimeLeft;
 import com.kabryxis.thevoid.api.game.Game;
-import com.kabryxis.thevoid.api.game.Gamer;
+import com.kabryxis.thevoid.api.game.GamePlayer;
+import com.kabryxis.thevoid.api.util.game.DeathReason;
+import org.bukkit.Location;
 import org.bukkit.event.Event;
 
-import java.util.Collection;
+import java.util.List;
 
-public interface Round extends PredicateWeighted<Object> {
+public interface Round extends ConditionalWeighted<Object> {
 	
 	String getName();
 	
@@ -24,9 +26,13 @@ public interface Round extends PredicateWeighted<Object> {
 	
 	void event(Game game, Event event);
 	
-	void kill(Gamer gamer, DeathReason reason);
+	void kill(GamePlayer gamePlayer, DeathReason reason);
 	
-	Collection<Gamer> getRoundWinners(Game game);
+	void setup(GamePlayer gamePlayer);
+	
+	Location[] getSpawns(Game game, int amount);
+	
+	List<? extends GamePlayer> getRoundWinners(Game game);
 	
 	void customTimer();
 	

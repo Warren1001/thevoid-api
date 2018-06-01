@@ -1,6 +1,6 @@
 package com.kabryxis.thevoid.api.arena.object;
 
-import com.kabryxis.kabutils.data.BiSupplier;
+import com.kabryxis.kabutils.utility.BiSupplier;
 import com.kabryxis.thevoid.api.arena.Arena;
 import com.kabryxis.thevoid.api.arena.schematic.BaseSchematic;
 

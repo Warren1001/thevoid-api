@@ -1,28 +1,29 @@
 package com.kabryxis.thevoid.api.arena;
 
-import com.kabryxis.kabutils.random.PredicateWeighted;
+import com.kabryxis.kabutils.random.weighted.conditional.ConditionalWeighted;
 import com.kabryxis.thevoid.api.arena.object.ArenaDataObjectRegistry;
 import com.kabryxis.thevoid.api.arena.schematic.ArenaData;
 import com.kabryxis.thevoid.api.arena.schematic.BaseArenaData;
 import com.kabryxis.thevoid.api.arena.schematic.BaseSchematic;
 import com.kabryxis.thevoid.api.arena.schematic.Schematic;
+import com.sk89q.worldedit.EditSession;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 
 import java.util.List;
 
-public interface Arena extends PredicateWeighted<Object> {
+public interface Arena extends ConditionalWeighted<Object> {
 	
 	String getName();
 	
 	Location getLocation();
 	
-	default World getWorld() {
-		return getLocation().getWorld();
-	}
+	World getWorld();
 	
 	ArenaDataObjectRegistry getRegistry();
+	
+	EditSession getEditSession();
 	
 	void queueSchematics(List<? extends BaseSchematic> list);
 	

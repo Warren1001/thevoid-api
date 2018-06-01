@@ -4,19 +4,17 @@ import com.kabryxis.thevoid.api.round.RoundInfo;
 import org.bukkit.event.Event;
 import org.bukkit.plugin.Plugin;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Consumer;
-
 public interface Game {
 	
 	String getName();
 	
 	Plugin getOwner();
 	
-	void threadStart();
+	PlayerManager getPlayerManager();
 	
 	boolean canRun();
+	
+	void threadStart();
 	
 	void next();
 	
@@ -32,24 +30,14 @@ public interface Game {
 	
 	void unpause();
 	
-	void forEachGamer(Consumer<? super Gamer> action);
+	void callEvent(Event event);
 	
 	RoundInfo getCurrentRoundInfo();
 	
-	void callEvent(Event event);
-	
 	boolean isInProgress();
 	
-	void addGamer(Gamer gamer);
+	boolean kill(GamePlayer gamePlayer);
 	
-	void removeGamer(Gamer gamer);
-	
-	List<Gamer> getGamers();
-	
-	Collection<Gamer> getAliveGamers();
-	
-	boolean kill(Gamer gamer);
-	
-	void revive(Gamer gamer);
+	void revive(GamePlayer gamePlayer);
 	
 }

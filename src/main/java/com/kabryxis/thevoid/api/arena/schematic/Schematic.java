@@ -1,7 +1,7 @@
 package com.kabryxis.thevoid.api.arena.schematic;
 
-import com.kabryxis.thevoid.api.arena.schematic.util.SchematicEntry;
-import com.kabryxis.thevoid.api.arena.schematic.util.SchematicWork;
+import com.kabryxis.thevoid.api.util.arena.schematic.SchematicEntry;
+import com.kabryxis.thevoid.api.util.arena.schematic.SchematicWork;
 
 import java.util.Set;
 import java.util.function.Supplier;
