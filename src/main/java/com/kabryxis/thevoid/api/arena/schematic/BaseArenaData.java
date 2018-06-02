@@ -15,4 +15,6 @@ public interface BaseArenaData extends ArenaData, ArenaDataObjectable {
 	
 	int getLowestY();
 	
+	void loadChunks();
+	
 }

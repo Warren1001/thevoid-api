@@ -110,6 +110,11 @@ public class VoidArena implements Arena {
 	}
 	
 	@Override
+	public void loadChunks() {
+		currentArenaData.loadChunks();
+	}
+	
+	@Override
 	public void eraseSchematic() {
 		if(hasNextArenaData() && getNextArenaData().equals(currentArenaData)) return;
 		currentArenaData.eraseSchematic();

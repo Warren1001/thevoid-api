@@ -16,13 +16,15 @@ public interface Round extends ConditionalWeighted<Object> {
 	
 	int getRoundLength();
 	
-	void load(Game game);
+	void load(Game game, RoundInfo info);
 	
 	void start(Game game);
 	
 	void tick(Game game, int time, TimeLeft timeLeft);
 	
 	void end(Game game);
+	
+	void unload(Game game);
 	
 	void event(Game game, Event event);
 	
@@ -34,6 +36,6 @@ public interface Round extends ConditionalWeighted<Object> {
 	
 	List<? extends GamePlayer> getRoundWinners(Game game);
 	
-	void customTimer();
+	void customTimer(Game game);
 	
 }

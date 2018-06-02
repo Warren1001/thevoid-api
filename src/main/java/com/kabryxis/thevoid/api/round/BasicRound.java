@@ -58,7 +58,7 @@ public abstract class BasicRound implements Round {
 	}
 	
 	@Override
-	public void load(Game game) {}
+	public void load(Game game, RoundInfo info) {}
 	
 	@Override
 	public void start(Game game) {}
@@ -68,6 +68,9 @@ public abstract class BasicRound implements Round {
 	
 	@Override
 	public void end(Game game) {}
+	
+	@Override
+	public void unload(Game game) {}
 	
 	@Override
 	public void event(Game game, Event event) {}
@@ -91,7 +94,7 @@ public abstract class BasicRound implements Round {
 	}
 	
 	@Override
-	public void customTimer() {}
+	public void customTimer(Game game) {}
 	
 	@Override
 	public boolean test(Object obj) {

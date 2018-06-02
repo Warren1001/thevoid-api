@@ -118,7 +118,7 @@ public class VoidGame implements Game {
 		RoundInfo info = getCurrentRoundInfo();
 		Round round = info.getRound();
 		int roundLength = round.getRoundLength();
-		if(roundLength == -1) round.customTimer();
+		if(roundLength == -1) round.customTimer(this);
 		else cm.count("gameTimer", (int)Math.ceil((double)roundLength * info.getSchematic().getTimeModifier()));
 	}
 	
@@ -137,8 +137,8 @@ public class VoidGame implements Game {
 		Threads.sleep(3500);
 		playerManager.forEachActivePlayer(GamePlayer::revive);
 		playerManager.getBoard().nextRound();
-		//BukkitThreads.syncLater(() -> info.getArena().eraseSchematic(), 5);
 		info.getArena().eraseSchematic();
+		round.unload(this);
 	}
 	
 	@Override

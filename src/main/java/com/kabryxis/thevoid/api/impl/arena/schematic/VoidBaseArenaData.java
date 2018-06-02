@@ -87,7 +87,7 @@ public class VoidBaseArenaData extends VoidArenaData implements BaseArenaData {
 	@Override
 	public void loadSchematic() {
 		super.loadSchematic();
-		loadChunks();
+		//loadChunks();
 	}
 	
 	/*@Override
@@ -143,12 +143,13 @@ public class VoidBaseArenaData extends VoidArenaData implements BaseArenaData {
 		return getSchematic().getData().getKeys(true);
 	}
 	
+	@Override
 	public void loadChunks() {
 		int lcx = lx >> 4, lcz = lz >> 4, mcx = mx >> 4, mcz = mz >> 4;
 		Set<Chunk> chunkSet = new HashSet<>();
 		Arena arena = getArena();
 		World world = arena.getWorld();
-		int radius = 3;
+		int radius = 5;
 		BukkitThreads.sync(() -> {
 			Chunk baseChunk = arena.getLocation().getChunk();
 			chunkSet.add(baseChunk);

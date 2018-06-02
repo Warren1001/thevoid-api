@@ -39,6 +39,8 @@ public interface Arena extends ConditionalWeighted<Object> {
 	
 	void loadSchematic();
 	
+	void loadChunks();
+	
 	void eraseSchematic();
 	
 	void spawnedEntity(Entity entity);
