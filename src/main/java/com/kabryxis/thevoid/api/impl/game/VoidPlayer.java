@@ -185,6 +185,11 @@ public class VoidPlayer implements GamePlayer {
 	}
 	
 	@Override
+	public void teleportRelative(Location location) {
+		entityPlayer.teleportRelative(location);
+	}
+	
+	@Override
 	public void setLevel(int level) {
 		player.setLevel(level);
 	}

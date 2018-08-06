@@ -60,6 +60,8 @@ public interface GamePlayer {
 	
 	void teleport(Location location);
 	
+	void teleportRelative(Location location);
+	
 	void setLevel(int level);
 	
 	void clearEffects();

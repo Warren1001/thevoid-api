@@ -106,8 +106,8 @@ public class VoidGame implements Game {
 			List<VoidPlayer> voidPlayers = playerManager.getAlivePlayers();
 			for(int i = 0; i < spawns.length; i++) {
 				VoidPlayer voidPlayer = voidPlayers.get(i);
-				round.setup(voidPlayer);
 				voidPlayer.teleport(spawns[i]);
+				round.setup(voidPlayer);
 			}
 		});
 		if(infos.hasNext()) infos.getNext().load(this);

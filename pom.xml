@@ -59,7 +59,7 @@
     <dependency>
       <groupId>com.boydti</groupId>
       <artifactId>fawe-api</artifactId>
-      <version>18.03.19-18c7145-1053-19.4.16</version>
+      <version>latest</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
